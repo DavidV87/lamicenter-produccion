@@ -1,0 +1,25 @@
+// =============================================================
+// Lamicenter — Schema Prisma
+// Base de datos: PostgreSQL 18
+//
+// Convenciones:
+//   - Nombres de tablas y campos en español (snake_case)
+//   - UUIDs como identificadores principales (gen_random_uuid)
+//   - Sin eliminación física en entidades críticas
+//   - Estados controlados por tablas de máquina de estados
+// =============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo temporal para inicializar cliente Prisma
+// Se reemplazara en la sesion 2 con el bloque 1 real
+model Inicializacion {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+}
