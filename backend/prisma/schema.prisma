@@ -3,9 +3,10 @@
 // Base de datos: PostgreSQL 18
 //
 // Convenciones:
-//   - Nombres de tablas y campos en español (snake_case)
+//   - Nombres de tablas y campos en español (snake_case en BD)
+//   - camelCase en modelos y campos Prisma
 //   - UUIDs como identificadores principales (gen_random_uuid)
-//   - Sin eliminación física en entidades críticas
+//   - Sin eliminación física en entidades críticas (activo boolean)
 //   - Estados controlados por tablas de máquina de estados
 // =============================================================
 
@@ -18,8 +19,208 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Modelo temporal para inicializar cliente Prisma
-// Se reemplazara en la sesion 2 con el bloque 1 real
-model Inicializacion {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+// =============================================================
+// BLOQUE 1 — Usuarios, Roles, Permisos, Auditoría, Máquina de Estados
+// =============================================================
+
+// ------------------------------------------------------------
+// Enum: tipo de acción registrada en auditoría general
+// ------------------------------------------------------------
+enum TipoAccionAuditoria {
+  CREAR
+  ACTUALIZAR
+  CAMBIO_ESTADO
+  AUTORIZACION
+  CANCELACION
+  REPROCESO
+  DESPACHO
+  PQRS
+  OTRO
+}
+
+// ------------------------------------------------------------
+// Sedes — instalaciones físicas o sucursales de la empresa
+// ------------------------------------------------------------
+model Sede {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre        String   @unique @db.VarChar(100)
+  direccion     String?  @db.VarChar(255)
+  telefono      String?  @db.VarChar(30)
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  usuarios Usuario[]
+
+  @@map("sedes")
+}
+
+// ------------------------------------------------------------
+// Roles — perfiles de acceso y autorización
+// ------------------------------------------------------------
+model Rol {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre        String   @unique @db.VarChar(80)
+  descripcion   String?  @db.Text
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  usuarios                Usuario[]
+  rolesPermisos           RolPermiso[]
+  transicionesAutorizadas TransicionRolAutorizado[]
+
+  @@map("roles")
+}
+
+// ------------------------------------------------------------
+// Usuarios — operadores del sistema
+// ------------------------------------------------------------
+model Usuario {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre        String   @db.VarChar(150)
+  email         String   @unique @db.VarChar(200)
+  passwordHash  String   @map("password_hash") @db.VarChar(255)
+  sedeId        String   @map("sede_id") @db.Uuid
+  rolId         String   @map("rol_id") @db.Uuid
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  sede       Sede               @relation(fields: [sedeId], references: [id], onDelete: Restrict)
+  rol        Rol                @relation(fields: [rolId], references: [id], onDelete: Restrict)
+  auditorias AuditoriaGeneral[]
+
+  @@index([sedeId])
+  @@index([rolId])
+  @@index([activo])
+  @@map("usuarios")
+}
+
+// ------------------------------------------------------------
+// Permisos — acciones granulares habilitadas por módulo
+// Código usa notación "modulo.accion" (ej: pedidos.crear)
+// ------------------------------------------------------------
+model Permiso {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  codigo        String   @unique @db.VarChar(100)
+  descripcion   String?  @db.Text
+  modulo        String   @db.VarChar(80)
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  rolesPermisos RolPermiso[]
+
+  @@index([modulo])
+  @@map("permisos")
+}
+
+// ------------------------------------------------------------
+// RolPermiso — asignación de permisos a roles (M:M)
+// ------------------------------------------------------------
+model RolPermiso {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  rolId     String   @map("rol_id") @db.Uuid
+  permisoId String   @map("permiso_id") @db.Uuid
+  creadoEn  DateTime @default(now()) @map("creado_en")
+
+  rol     Rol     @relation(fields: [rolId], references: [id], onDelete: Cascade)
+  permiso Permiso @relation(fields: [permisoId], references: [id], onDelete: Cascade)
+
+  @@unique([rolId, permisoId])
+  @@map("roles_permisos")
+}
+
+// ------------------------------------------------------------
+// AuditoriaGeneral — registro inmutable de operaciones críticas
+// registroId referencia el UUID del registro afectado en cualquier tabla.
+// usuarioId puede ser null cuando la acción es generada por el sistema.
+// datosAnteriores / datosNuevos almacenan el snapshot del registro.
+// metadata almacena contexto adicional libre según el tipo de acción.
+// ------------------------------------------------------------
+model AuditoriaGeneral {
+  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tablaAfectada   String              @map("tabla_afectada") @db.VarChar(100)
+  registroId      String              @map("registro_id") @db.Uuid
+  accion          TipoAccionAuditoria
+  datosAnteriores Json?               @map("datos_anteriores") @db.JsonB
+  datosNuevos     Json?               @map("datos_nuevos") @db.JsonB
+  metadata        Json?               @db.JsonB
+  usuarioId       String?             @map("usuario_id") @db.Uuid
+  ipOrigen        String?             @map("ip_origen") @db.VarChar(45)
+  creadoEn        DateTime            @default(now()) @map("creado_en")
+
+  usuario Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+
+  @@index([tablaAfectada, registroId])
+  @@index([usuarioId])
+  @@index([accion])
+  @@index([creadoEn])
+  @@map("auditoria_general")
+}
+
+// ------------------------------------------------------------
+// EstadoSistema — catálogo de estados por módulo de negocio
+// La combinación (modulo, codigo) es única.
+// Ejemplos de módulo: pedido, orden_produccion, despacho, pqrs
+// ------------------------------------------------------------
+model EstadoSistema {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  modulo          String   @db.VarChar(80)
+  codigo          String   @db.VarChar(80)
+  nombre          String   @db.VarChar(100)
+  descripcion     String?  @db.Text
+  esEstadoInicial Boolean  @default(false) @map("es_estado_inicial")
+  esEstadoFinal   Boolean  @default(false) @map("es_estado_final")
+  activo          Boolean  @default(true)
+  creadoEn        DateTime @default(now()) @map("creado_en")
+  actualizadoEn   DateTime @updatedAt @map("actualizado_en")
+
+  transicionesComoOrigen  TransicionEstado[] @relation("EstadoOrigen")
+  transicionesComoDestino TransicionEstado[] @relation("EstadoDestino")
+
+  @@unique([modulo, codigo])
+  @@index([modulo])
+  @@map("estados_sistema")
+}
+
+// ------------------------------------------------------------
+// TransicionEstado — arcos válidos de la máquina de estados
+// requiereAutorizacion indica si el rol debe estar en transiciones_roles_autorizados
+// ------------------------------------------------------------
+model TransicionEstado {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  estadoOrigenId       String   @map("estado_origen_id") @db.Uuid
+  estadoDestinoId      String   @map("estado_destino_id") @db.Uuid
+  nombre               String?  @db.VarChar(150)
+  requiereAutorizacion Boolean  @default(false) @map("requiere_autorizacion")
+  activo               Boolean  @default(true)
+  creadoEn             DateTime @default(now()) @map("creado_en")
+  actualizadoEn        DateTime @updatedAt @map("actualizado_en")
+
+  estadoOrigen     EstadoSistema             @relation("EstadoOrigen", fields: [estadoOrigenId], references: [id], onDelete: Restrict)
+  estadoDestino    EstadoSistema             @relation("EstadoDestino", fields: [estadoDestinoId], references: [id], onDelete: Restrict)
+  rolesAutorizados TransicionRolAutorizado[]
+
+  @@unique([estadoOrigenId, estadoDestinoId])
+  @@index([estadoOrigenId])
+  @@index([estadoDestinoId])
+  @@map("transiciones_estado")
+}
+
+// ------------------------------------------------------------
+// TransicionRolAutorizado — roles que pueden ejecutar una transición (M:M)
+// ------------------------------------------------------------
+model TransicionRolAutorizado {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  transicionId String   @map("transicion_id") @db.Uuid
+  rolId        String   @map("rol_id") @db.Uuid
+  creadoEn     DateTime @default(now()) @map("creado_en")
+
+  transicion TransicionEstado @relation(fields: [transicionId], references: [id], onDelete: Cascade)
+  rol        Rol              @relation(fields: [rolId], references: [id], onDelete: Cascade)
+
+  @@unique([transicionId, rolId])
+  @@map("transiciones_roles_autorizados")
 }
