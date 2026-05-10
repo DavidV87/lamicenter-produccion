@@ -46,6 +46,8 @@ model Sede {
   nombre        String   @unique @db.VarChar(100)
   direccion     String?  @db.VarChar(255)
   telefono      String?  @db.VarChar(30)
+  codigo        String?  @unique @db.VarChar(20)
+  correo        String?  @db.VarChar(150)
   activo        Boolean  @default(true)
   creadoEn      DateTime @default(now()) @map("creado_en")
   actualizadoEn DateTime @updatedAt @map("actualizado_en")
@@ -77,15 +79,16 @@ model Rol {
 // Usuarios — operadores del sistema
 // ------------------------------------------------------------
 model Usuario {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  nombre        String   @db.VarChar(150)
-  email         String   @unique @db.VarChar(200)
-  passwordHash  String   @map("password_hash") @db.VarChar(255)
-  sedeId        String   @map("sede_id") @db.Uuid
-  rolId         String   @map("rol_id") @db.Uuid
-  activo        Boolean  @default(true)
-  creadoEn      DateTime @default(now()) @map("creado_en")
-  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre        String    @db.VarChar(150)
+  email         String    @unique @db.VarChar(200)
+  passwordHash  String    @map("password_hash") @db.VarChar(255)
+  sedeId        String    @map("sede_id") @db.Uuid
+  rolId         String    @map("rol_id") @db.Uuid
+  activo        Boolean   @default(true)
+  creadoEn      DateTime  @default(now()) @map("creado_en")
+  actualizadoEn DateTime  @updatedAt @map("actualizado_en")
+  ultimoAcceso  DateTime? @map("ultimo_acceso")
 
   sede       Sede               @relation(fields: [sedeId], references: [id], onDelete: Restrict)
   rol        Rol                @relation(fields: [rolId], references: [id], onDelete: Restrict)
@@ -150,6 +153,7 @@ model AuditoriaGeneral {
   usuarioId       String?             @map("usuario_id") @db.Uuid
   ipOrigen        String?             @map("ip_origen") @db.VarChar(45)
   creadoEn        DateTime            @default(now()) @map("creado_en")
+  userAgent       String?             @map("user_agent") @db.VarChar(500)
 
   usuario Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
 
