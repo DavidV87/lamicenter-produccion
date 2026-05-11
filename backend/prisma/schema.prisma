@@ -52,12 +52,17 @@ model Sede {
   creadoEn      DateTime @default(now()) @map("creado_en")
   actualizadoEn DateTime @updatedAt @map("actualizado_en")
 
-  usuarios            Usuario[]
-  maquinas            Maquina[]
-  ubicaciones         Ubicacion[]
-  clientesPrincipales Cliente[]
-  documentos          Documento[] @relation("DocumentoSede")
-  facturas            Factura[]   @relation("FacturaSede")
+  usuarios               Usuario[]
+  maquinas               Maquina[]
+  ubicaciones            Ubicacion[]
+  clientesPrincipales    Cliente[]
+  documentos             Documento[]  @relation("DocumentoSede")
+  facturas               Factura[]    @relation("FacturaSede")
+  pedidosComoVenta       Pedido[]     @relation("PedidoSedeVenta")
+  pedidosComoResponsable Pedido[]     @relation("PedidoSedeResponsable")
+  pedidosComoDespacho    Pedido[]     @relation("PedidoSedeDespacho")
+  pedidoSedesOrigen      PedidoSede[] @relation("PedidoSedeOrigen")
+  pedidoSedesDestino     PedidoSede[] @relation("PedidoSedeDestino")
 
   @@map("sedes")
 }
@@ -95,16 +100,31 @@ model Usuario {
   actualizadoEn DateTime  @updatedAt @map("actualizado_en")
   ultimoAcceso  DateTime? @map("ultimo_acceso")
 
-  sede                   Sede                   @relation(fields: [sedeId], references: [id], onDelete: Restrict)
-  rol                    Rol                    @relation(fields: [rolId], references: [id], onDelete: Restrict)
-  auditorias             AuditoriaGeneral[]
-  documentosCreados      Documento[]            @relation("DocumentoCreadoPor")
-  versionesSubidas       DocumentoVersion[]     @relation("VersionSubidaPor")
-  facturasComoVendedor   Factura[]              @relation("FacturaVendedor")
-  facturasCreadas        Factura[]              @relation("FacturaCreadaPor")
-  itemsMapeados          FacturaItem[]          @relation("ItemMapeadoPor")
-  documentosRelacionados DocumentoRelacionado[] @relation("DocumentoRelacionadoPor")
-  lecturasDocumento      LecturaDocumento[]     @relation("LecturaProcesadaPor")
+  sede                        Sede                    @relation(fields: [sedeId], references: [id], onDelete: Restrict)
+  rol                         Rol                     @relation(fields: [rolId], references: [id], onDelete: Restrict)
+  auditorias                  AuditoriaGeneral[]
+  documentosCreados           Documento[]             @relation("DocumentoCreadoPor")
+  versionesSubidas            DocumentoVersion[]      @relation("VersionSubidaPor")
+  facturasComoVendedor        Factura[]               @relation("FacturaVendedor")
+  facturasCreadas             Factura[]               @relation("FacturaCreadaPor")
+  itemsMapeados               FacturaItem[]           @relation("ItemMapeadoPor")
+  documentosRelacionados      DocumentoRelacionado[]  @relation("DocumentoRelacionadoPor")
+  lecturasDocumento           LecturaDocumento[]      @relation("LecturaProcesadaPor")
+  pedidosComoVendedor         Pedido[]                @relation("PedidoVendedor")
+  pedidosCreados              Pedido[]                @relation("PedidoCreadoPor")
+  validacionesPedido          ValidacionPedido[]
+  asignacionesComoVendedor    AsignacionPedido[]      @relation("AsignacionVendedor")
+  asignacionesRealizadas      AsignacionPedido[]      @relation("AsignacionRealizadaPor")
+  materialesClienteRecibidos  MaterialCliente[]       @relation("MaterialClienteRecibidoPor")
+  materialesClienteCreados    MaterialCliente[]       @relation("MaterialClienteCreadoPor")
+  bloqueosPedidoCreados       BloqueoPedido[]         @relation("BloqueoPedidoCreadoPor")
+  bloqueosPedidoDesbloqueados BloqueoPedido[]         @relation("BloqueoPedidoDesbloqueadoPor")
+  pedidoSedesSolicitadas      PedidoSede[]            @relation("PedidoSedeSolicitadaPor")
+  pedidoSedesAutorizadas      PedidoSede[]            @relation("PedidoSedeAutorizadaPor")
+  historialEstadosPedido      HistorialEstadoPedido[]
+  entregasRealizadas          Entrega[]
+  facturasPedidoRelacionadas  FacturaPedido[]
+  pedidoItemDocumentosCreados PedidoItemDocumento[]
 
   @@index([sedeId])
   @@index([rolId])
@@ -193,8 +213,11 @@ model EstadoSistema {
   creadoEn        DateTime @default(now()) @map("creado_en")
   actualizadoEn   DateTime @updatedAt @map("actualizado_en")
 
-  transicionesComoOrigen  TransicionEstado[] @relation("EstadoOrigen")
-  transicionesComoDestino TransicionEstado[] @relation("EstadoDestino")
+  transicionesComoOrigen   TransicionEstado[]      @relation("EstadoOrigen")
+  transicionesComoDestino  TransicionEstado[]      @relation("EstadoDestino")
+  pedidos                  Pedido[]                @relation("PedidoEstado")
+  historialAnteriorPedidos HistorialEstadoPedido[] @relation("EstadoAnteriorPedido")
+  historialNuevoPedidos    HistorialEstadoPedido[] @relation("EstadoNuevoPedido")
 
   @@unique([modulo, codigo])
   @@index([modulo])
@@ -353,6 +376,7 @@ model Item {
 
   tipoItem     TipoItem      @relation(fields: [tipoItemId], references: [id], onDelete: Restrict)
   facturaItems FacturaItem[]
+  pedidoItems  PedidoItem[]
 
   @@index([codigo])
   @@index([tipoItemId])
@@ -383,6 +407,7 @@ model Cliente {
   sedePrincipal Sede?             @relation(fields: [sedePrincipalId], references: [id], onDelete: SetNull)
   contactos     ContactoCliente[]
   facturas      Factura[]         @relation("FacturaCliente")
+  pedidos       Pedido[]
 
   @@index([sedePrincipalId])
   @@index([activo])
@@ -406,7 +431,8 @@ model ContactoCliente {
   creadoEn      DateTime @default(now()) @map("creado_en")
   actualizadoEn DateTime @updatedAt @map("actualizado_en")
 
-  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  cliente  Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  entregas Entrega[]
 
   @@index([clienteId])
   @@map("contactos_cliente")
@@ -631,13 +657,14 @@ model Documento {
   creadoEn           DateTime @default(now()) @map("creado_en")
   actualizadoEn      DateTime @updatedAt @map("actualizado_en")
 
-  tipoDocumento     TipoDocumento          @relation(fields: [tipoDocumentoId], references: [id], onDelete: Restrict)
-  sede              Sede?                  @relation("DocumentoSede", fields: [sedeId], references: [id], onDelete: SetNull)
-  creadoPor         Usuario                @relation("DocumentoCreadoPor", fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
-  versiones         DocumentoVersion[]
-  factura           Factura?
-  relacionesOrigen  DocumentoRelacionado[] @relation("DocumentoOrigen")
-  relacionesDestino DocumentoRelacionado[] @relation("DocumentoDestino")
+  tipoDocumento        TipoDocumento          @relation(fields: [tipoDocumentoId], references: [id], onDelete: Restrict)
+  sede                 Sede?                  @relation("DocumentoSede", fields: [sedeId], references: [id], onDelete: SetNull)
+  creadoPor            Usuario                @relation("DocumentoCreadoPor", fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
+  versiones            DocumentoVersion[]
+  factura              Factura?
+  relacionesOrigen     DocumentoRelacionado[] @relation("DocumentoOrigen")
+  relacionesDestino    DocumentoRelacionado[] @relation("DocumentoDestino")
+  pedidoItemDocumentos PedidoItemDocumento[]
 
   @@index([tipoDocumentoId])
   @@index([sedeId])
@@ -710,12 +737,13 @@ model Factura {
   creadoEn           DateTime      @default(now()) @map("creado_en")
   actualizadoEn      DateTime      @updatedAt @map("actualizado_en")
 
-  documento Documento     @relation(fields: [documentoId], references: [id], onDelete: Restrict)
-  sede      Sede          @relation("FacturaSede", fields: [sedeId], references: [id], onDelete: Restrict)
-  cliente   Cliente       @relation("FacturaCliente", fields: [clienteId], references: [id], onDelete: Restrict)
-  vendedor  Usuario?      @relation("FacturaVendedor", fields: [vendedorId], references: [id], onDelete: SetNull)
-  creadoPor Usuario?      @relation("FacturaCreadaPor", fields: [creadoPorUsuarioId], references: [id], onDelete: SetNull)
-  items     FacturaItem[]
+  documento      Documento       @relation(fields: [documentoId], references: [id], onDelete: Restrict)
+  sede           Sede            @relation("FacturaSede", fields: [sedeId], references: [id], onDelete: Restrict)
+  cliente        Cliente         @relation("FacturaCliente", fields: [clienteId], references: [id], onDelete: Restrict)
+  vendedor       Usuario?        @relation("FacturaVendedor", fields: [vendedorId], references: [id], onDelete: SetNull)
+  creadoPor      Usuario?        @relation("FacturaCreadaPor", fields: [creadoPorUsuarioId], references: [id], onDelete: SetNull)
+  items          FacturaItem[]
+  facturasPedido FacturaPedido[]
 
   @@index([sedeId])
   @@index([clienteId])
@@ -753,9 +781,10 @@ model FacturaItem {
   creadoEn            DateTime    @default(now()) @map("creado_en")
   actualizadoEn       DateTime    @updatedAt @map("actualizado_en")
 
-  factura    Factura  @relation(fields: [facturaId], references: [id], onDelete: Cascade)
-  item       Item?    @relation(fields: [itemId], references: [id], onDelete: SetNull)
-  mapeadoPor Usuario? @relation("ItemMapeadoPor", fields: [mapeadoPorUsuarioId], references: [id], onDelete: SetNull)
+  factura     Factura      @relation(fields: [facturaId], references: [id], onDelete: Cascade)
+  item        Item?        @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  mapeadoPor  Usuario?     @relation("ItemMapeadoPor", fields: [mapeadoPorUsuarioId], references: [id], onDelete: SetNull)
+  pedidoItems PedidoItem[]
 
   @@index([facturaId])
   @@index([itemId])
@@ -820,4 +849,494 @@ model LecturaDocumento {
   @@index([estadoLectura])
   @@index([procesadoPorUsuarioId])
   @@map("lectura_documentos")
+}
+
+// =============================================================
+// BLOQUE 4 — Pedidos y Estructura Operativa
+// =============================================================
+
+// ------------------------------------------------------------
+// Enum: destino operativo de un ítem dentro del pedido
+// PRODUCCION: entra al flujo de corte/enchape/perforación en planta.
+// DESPACHO_DIRECTO: sale sin pasar por producción (ej: herraje, tablero entero).
+// MATERIAL_CLIENTE: material físico que trajo el cliente; no afecta inventario Lamicenter.
+// SERVICIO: proceso que no requiere producción en planta (ej: instalación, asesoría).
+// ------------------------------------------------------------
+enum DestinoOperativo {
+  PRODUCCION
+  DESPACHO_DIRECTO
+  MATERIAL_CLIENTE
+  SERVICIO
+}
+
+// ------------------------------------------------------------
+// Enum: tipo de material físico que el cliente trae a Lamicenter para procesar
+// ------------------------------------------------------------
+enum TipoMaterialCliente {
+  TABLERO
+  TAPA
+  RETAL
+  HERRAJE
+  INSUMO
+}
+
+// ------------------------------------------------------------
+// Enum: estado físico y operativo del material cliente en el sistema
+// PENDIENTE_RECEPCION: registrado pero aún no recibido físicamente.
+// EN_PROCESO: siendo usado o en espera dentro de producción.
+// ------------------------------------------------------------
+enum EstadoMaterialCliente {
+  PENDIENTE_RECEPCION
+  RECIBIDO
+  EN_PROCESO
+  DEVUELTO
+  EXTRAVIADO
+}
+
+// ------------------------------------------------------------
+// Enum: resultado del proceso de validación de un pedido antes de activarlo para producción
+// REQUIERE_AJUSTE: el coordinador detectó inconsistencias que el vendedor debe corregir.
+// ------------------------------------------------------------
+enum EstadoValidacionPedido {
+  PENDIENTE
+  APROBADA
+  RECHAZADA
+  REQUIERE_AJUSTE
+}
+
+// ------------------------------------------------------------
+// Enum: tipo de movimiento de sede registrado en el historial de traslados del pedido
+// ------------------------------------------------------------
+enum TipoMovimientoSede {
+  TRASLADO_PRODUCCION
+  TRASLADO_DESPACHO
+  DEVOLUCION_SEDE_ORIGEN
+  ASIGNACION_INICIAL
+  CAMBIO_RESPONSABLE
+}
+
+// ------------------------------------------------------------
+// Enum: tipo de relación entre una factura y un pedido
+// Corresponde a los tipos definidos en la decisión técnica del Bloque 3/4.
+// REEMPLAZO: la nueva factura sustituye operativamente a la anterior anulada.
+// DEVOLUCION: nota crédito asociada al pedido por reclamo o ajuste.
+// ------------------------------------------------------------
+enum TipoRelacionFacturaPedido {
+  PRINCIPAL
+  ADICIONAL
+  REEMPLAZO
+  DEVOLUCION
+  COMPLEMENTO
+}
+
+// ------------------------------------------------------------
+// Enum: motivo del bloqueo de un pedido
+// FACTURA_ANULADA: ContaPyme anuló la factura asociada; requiere revisión obligatoria.
+// REVISION_ADMINISTRATIVA: bloqueo manual por el administrador de punto.
+// ------------------------------------------------------------
+enum TipoBloqueo {
+  FACTURA_ANULADA
+  PAGO_VENCIDO
+  REVISION_ADMINISTRATIVA
+  PENDIENTE_AUTORIZACION
+  MANUAL
+}
+
+// ------------------------------------------------------------
+// Pedido — registro central de una solicitud de trabajo para un cliente
+// estadoPedidoId: FK a estados_sistema (no enum libre); permite configuración
+// dinámica de estados sin migraciones adicionales.
+// sedeVentaId: sede donde el vendedor registró el pedido comercialmente.
+// sedeResponsableId: sede operativamente responsable del pedido.
+// sedeDespachoId: sede donde se entregará; nullable si aún no está definida.
+// fechaListoDespacho: desnormalizado para métricas rápidas de tiempo terminado vs recogido.
+// fechaDespachoCompleto: desnormalizado; refleja cuándo el pedido salió completo.
+// vendedorId: nullable; puede reasignarse. Historial en asignaciones_pedido.
+// ------------------------------------------------------------
+model Pedido {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sedeVentaId           String    @map("sede_venta_id") @db.Uuid
+  sedeResponsableId     String    @map("sede_responsable_id") @db.Uuid
+  sedeDespachoId        String?   @map("sede_despacho_id") @db.Uuid
+  clienteId             String    @map("cliente_id") @db.Uuid
+  vendedorId            String?   @map("vendedor_id") @db.Uuid
+  creadoPorUsuarioId    String    @map("creado_por_usuario_id") @db.Uuid
+  estadoPedidoId        String    @map("estado_pedido_id") @db.Uuid
+  observaciones         String?   @db.Text
+  fechaListoDespacho    DateTime? @map("fecha_listo_despacho")
+  fechaDespachoCompleto DateTime? @map("fecha_despacho_completo")
+  metadata              Json?     @db.JsonB
+  creadoEn              DateTime  @default(now()) @map("creado_en")
+  actualizadoEn         DateTime  @updatedAt @map("actualizado_en")
+
+  sedeVenta         Sede                    @relation("PedidoSedeVenta", fields: [sedeVentaId], references: [id], onDelete: Restrict)
+  sedeResponsable   Sede                    @relation("PedidoSedeResponsable", fields: [sedeResponsableId], references: [id], onDelete: Restrict)
+  sedeDespacho      Sede?                   @relation("PedidoSedeDespacho", fields: [sedeDespachoId], references: [id], onDelete: SetNull)
+  cliente           Cliente                 @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  vendedor          Usuario?                @relation("PedidoVendedor", fields: [vendedorId], references: [id], onDelete: SetNull)
+  creadoPor         Usuario                 @relation("PedidoCreadoPor", fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
+  estadoPedido      EstadoSistema           @relation("PedidoEstado", fields: [estadoPedidoId], references: [id], onDelete: Restrict)
+  items             PedidoItem[]
+  materialesCliente MaterialCliente[]
+  validaciones      ValidacionPedido[]
+  entregas          Entrega[]
+  historialEstados  HistorialEstadoPedido[]
+  asignaciones      AsignacionPedido[]
+  bloqueos          BloqueoPedido[]
+  sedes             PedidoSede[]
+  facturasPedido    FacturaPedido[]
+
+  @@index([sedeVentaId])
+  @@index([sedeResponsableId])
+  @@index([clienteId])
+  @@index([vendedorId])
+  @@index([estadoPedidoId])
+  @@map("pedidos")
+}
+
+// ------------------------------------------------------------
+// PedidoItem — línea de ítem dentro de un pedido
+// cantidadPendiente: CAMPO CALCULADO INMUTABLE — captura la cantidad pendiente en el momento
+// del evento que genera el registro. No se recalcula retroactivamente; es un snapshot inmutable.
+// cantidadParaProduccion: porción del ítem que entra al flujo de producción en planta.
+// cantidadParaDespachoEntero: porción que se despacha sin procesamiento adicional.
+// facturaItemId: trazabilidad del ítem de factura origen que dio lugar a esta línea del pedido.
+// esMaterialCliente: indica que el ítem corresponde a material traído por el cliente.
+// ------------------------------------------------------------
+model PedidoItem {
+  id                         String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pedidoId                   String           @map("pedido_id") @db.Uuid
+  itemId                     String?          @map("item_id") @db.Uuid
+  facturaItemId              String?          @map("factura_item_id") @db.Uuid
+  descripcion                String           @db.VarChar(500)
+  cantidad                   Decimal          @db.Decimal(14, 4)
+  cantidadTotal              Decimal          @map("cantidad_total") @db.Decimal(14, 4)
+  cantidadParaProduccion     Decimal          @map("cantidad_para_produccion") @db.Decimal(14, 4)
+  cantidadParaDespachoEntero Decimal          @map("cantidad_para_despacho_entero") @db.Decimal(14, 4)
+  // CAMPO CALCULADO INMUTABLE: snapshot de cantidad pendiente al momento del evento que lo genera
+  cantidadPendiente          Decimal          @map("cantidad_pendiente") @db.Decimal(14, 4)
+  precioUnitario             Decimal?         @map("precio_unitario") @db.Decimal(14, 4)
+  destinoOperativo           DestinoOperativo @map("destino_operativo")
+  esMaterialCliente          Boolean          @default(false) @map("es_material_cliente")
+  observaciones              String?          @db.Text
+  metadata                   Json?            @db.JsonB
+  creadoEn                   DateTime         @default(now()) @map("creado_en")
+  actualizadoEn              DateTime         @updatedAt @map("actualizado_en")
+
+  pedido            Pedido                @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  item              Item?                 @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  facturaItem       FacturaItem?          @relation(fields: [facturaItemId], references: [id], onDelete: SetNull)
+  documentos        PedidoItemDocumento[]
+  entregaItems      EntregaItem[]
+  materialesCliente MaterialCliente[]
+
+  @@index([pedidoId])
+  @@index([itemId])
+  @@index([facturaItemId])
+  @@index([destinoOperativo])
+  @@map("pedido_items")
+}
+
+// ------------------------------------------------------------
+// PedidoItemDocumento — vínculo entre un ítem del pedido y un documento de referencia
+// Permite adjuntar planos, especificaciones o imágenes a ítems específicos del pedido.
+// tipoUso: clasificación informal del propósito del documento para ese ítem (libre).
+// ------------------------------------------------------------
+model PedidoItemDocumento {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pedidoItemId       String   @map("pedido_item_id") @db.Uuid
+  documentoId        String   @map("documento_id") @db.Uuid
+  tipoUso            String?  @map("tipo_uso") @db.VarChar(80)
+  creadoPorUsuarioId String?  @map("creado_por_usuario_id") @db.Uuid
+  observaciones      String?  @db.Text
+  creadoEn           DateTime @default(now()) @map("creado_en")
+
+  pedidoItem PedidoItem @relation(fields: [pedidoItemId], references: [id], onDelete: Cascade)
+  documento  Documento  @relation(fields: [documentoId], references: [id], onDelete: Restrict)
+  creadoPor  Usuario?   @relation(fields: [creadoPorUsuarioId], references: [id], onDelete: SetNull)
+
+  @@index([pedidoItemId])
+  @@index([documentoId])
+  @@map("pedido_item_documentos")
+}
+
+// ------------------------------------------------------------
+// MaterialCliente — material físico traído por el cliente para ser procesado en Lamicenter
+// No afecta inventario de Lamicenter ni genera movimientos de stock.
+// Debe ser recibido y validado físicamente antes de comenzar a procesar.
+// Los sobrantes pertenecen al cliente; en V1.0 no se controlan salvo PQRS por faltante.
+// pedidoItemId: vínculo opcional al ítem del pedido que usa este material.
+// Nota: los campos ordenProduccionId y subordenId se agregarán en el Bloque 5.
+// ------------------------------------------------------------
+model MaterialCliente {
+  id                   String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pedidoId             String                @map("pedido_id") @db.Uuid
+  pedidoItemId         String?               @map("pedido_item_id") @db.Uuid
+  tipoMaterial         TipoMaterialCliente   @map("tipo_material")
+  descripcion          String                @db.VarChar(500)
+  cantidad             Decimal               @db.Decimal(14, 4)
+  medidasAproximadas   String?               @map("medidas_aproximadas") @db.VarChar(150)
+  estadoFisicoRecibido String?               @map("estado_fisico_recibido") @db.VarChar(255)
+  estado               EstadoMaterialCliente @default(PENDIENTE_RECEPCION)
+  recibidoPorUsuarioId String?               @map("recibido_por_usuario_id") @db.Uuid
+  fechaRecepcion       DateTime?             @map("fecha_recepcion")
+  observaciones        String?               @db.Text
+  metadata             Json?                 @db.JsonB
+  creadoPorUsuarioId   String                @map("creado_por_usuario_id") @db.Uuid
+  creadoEn             DateTime              @default(now()) @map("creado_en")
+  actualizadoEn        DateTime              @updatedAt @map("actualizado_en")
+
+  pedido      Pedido      @relation(fields: [pedidoId], references: [id], onDelete: Restrict)
+  pedidoItem  PedidoItem? @relation(fields: [pedidoItemId], references: [id], onDelete: SetNull)
+  recibidoPor Usuario?    @relation("MaterialClienteRecibidoPor", fields: [recibidoPorUsuarioId], references: [id], onDelete: SetNull)
+  creadoPor   Usuario     @relation("MaterialClienteCreadoPor", fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
+
+  @@index([pedidoId])
+  @@index([pedidoItemId])
+  @@index([estado])
+  @@map("material_cliente")
+}
+
+// ------------------------------------------------------------
+// ValidacionPedido — proceso formal de validación antes de activar el pedido para producción
+// El coordinador revisa que el pedido esté completo, correcto y con documentos suficientes.
+// Un pedido puede pasar por múltiples rondas de validación si se rechaza y corrige.
+// ------------------------------------------------------------
+model ValidacionPedido {
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pedidoId             String                 @map("pedido_id") @db.Uuid
+  validadoPorUsuarioId String?                @map("validado_por_usuario_id") @db.Uuid
+  estadoValidacion     EstadoValidacionPedido @default(PENDIENTE) @map("estado_validacion")
+  observaciones        String?                @db.Text
+  metadata             Json?                  @db.JsonB
+  creadoEn             DateTime               @default(now()) @map("creado_en")
+  actualizadoEn        DateTime               @updatedAt @map("actualizado_en")
+
+  pedido      Pedido                    @relation(fields: [pedidoId], references: [id], onDelete: Restrict)
+  validadoPor Usuario?                  @relation(fields: [validadoPorUsuarioId], references: [id], onDelete: SetNull)
+  detalles    ValidacionPedidoDetalle[]
+
+  @@index([pedidoId])
+  @@index([estadoValidacion])
+  @@map("validaciones_pedido")
+}
+
+// ------------------------------------------------------------
+// ValidacionPedidoDetalle — ítem individual verificado dentro de una validación de pedido
+// Registra cada aspecto chequeado y su resultado binario de aprobación.
+// ------------------------------------------------------------
+model ValidacionPedidoDetalle {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  validacionPedidoId String   @map("validacion_pedido_id") @db.Uuid
+  tipoVerificacion   String   @map("tipo_verificacion") @db.VarChar(150)
+  aprobado           Boolean
+  observaciones      String?  @db.Text
+  creadoEn           DateTime @default(now()) @map("creado_en")
+
+  validacion ValidacionPedido @relation(fields: [validacionPedidoId], references: [id], onDelete: Cascade)
+
+  @@index([validacionPedidoId])
+  @@map("validacion_pedido_detalles")
+}
+
+// ------------------------------------------------------------
+// Entrega — evento de entrega parcial o total de ítems al cliente
+// La entrega parcial planeada ocurre cuando el vendedor indica que el cliente retirará
+// parte del pedido antes de que se complete todo el proceso.
+// Un despacho incompleto (distinto de entrega parcial planeada) puede también generar PQRS.
+// contactoClienteId: persona del cliente que recibe físicamente la entrega.
+// recibeNombre: nombre libre del receptor si no está registrado como contacto.
+// ------------------------------------------------------------
+model Entrega {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pedidoId              String   @map("pedido_id") @db.Uuid
+  contactoClienteId     String?  @map("contacto_cliente_id") @db.Uuid
+  entregadoPorUsuarioId String   @map("entregado_por_usuario_id") @db.Uuid
+  recibeNombre          String?  @map("recibe_nombre") @db.VarChar(200)
+  observaciones         String?  @db.Text
+  metadata              Json?    @db.JsonB
+  creadoEn              DateTime @default(now()) @map("creado_en")
+
+  pedido          Pedido           @relation(fields: [pedidoId], references: [id], onDelete: Restrict)
+  contactoCliente ContactoCliente? @relation(fields: [contactoClienteId], references: [id], onDelete: SetNull)
+  entregadoPor    Usuario          @relation(fields: [entregadoPorUsuarioId], references: [id], onDelete: Restrict)
+  items           EntregaItem[]
+
+  @@index([pedidoId])
+  @@index([contactoClienteId])
+  @@map("entregas")
+}
+
+// ------------------------------------------------------------
+// EntregaItem — detalle de cada ítem incluido en un evento de entrega
+// cantidadPendientePosterior: CAMPO CALCULADO INMUTABLE — cantidad que quedó pendiente
+// DESPUÉS de esta entrega. Fórmula: cantidadPendiente_antes − cantidadEntregada.
+// No se recalcula retroactivamente; es el snapshot inmutable en el momento de la entrega.
+// ------------------------------------------------------------
+model EntregaItem {
+  id                         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entregaId                  String   @map("entrega_id") @db.Uuid
+  pedidoItemId               String   @map("pedido_item_id") @db.Uuid
+  cantidadEntregada          Decimal  @map("cantidad_entregada") @db.Decimal(14, 4)
+  // CAMPO CALCULADO INMUTABLE: snapshot de cantidad pendiente después de esta entrega
+  cantidadPendientePosterior Decimal  @map("cantidad_pendiente_posterior") @db.Decimal(14, 4)
+  observaciones              String?  @db.Text
+  creadoEn                   DateTime @default(now()) @map("creado_en")
+
+  entrega    Entrega    @relation(fields: [entregaId], references: [id], onDelete: Cascade)
+  pedidoItem PedidoItem @relation(fields: [pedidoItemId], references: [id], onDelete: Restrict)
+
+  @@index([entregaId])
+  @@index([pedidoItemId])
+  @@map("entrega_items")
+}
+
+// ------------------------------------------------------------
+// HistorialEstadoPedido — registro inmutable de cada cambio de estado de un pedido
+// IMPORTANTE: debe escribirse junto con auditoria_general dentro de la misma transacción
+// para garantizar consistencia entre el historial operativo y el registro de auditoría.
+// estadoAnteriorId: nullable en la transición inicial (pedido recién creado, sin estado previo).
+// No tiene actualizadoEn: el registro es inmutable una vez creado.
+// ------------------------------------------------------------
+model HistorialEstadoPedido {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pedidoId           String   @map("pedido_id") @db.Uuid
+  estadoAnteriorId   String?  @map("estado_anterior_id") @db.Uuid
+  estadoNuevoId      String   @map("estado_nuevo_id") @db.Uuid
+  creadoPorUsuarioId String?  @map("creado_por_usuario_id") @db.Uuid
+  observaciones      String?  @db.Text
+  metadata           Json?    @db.JsonB
+  creadoEn           DateTime @default(now()) @map("creado_en")
+
+  pedido         Pedido         @relation(fields: [pedidoId], references: [id], onDelete: Restrict)
+  estadoAnterior EstadoSistema? @relation("EstadoAnteriorPedido", fields: [estadoAnteriorId], references: [id], onDelete: SetNull)
+  estadoNuevo    EstadoSistema  @relation("EstadoNuevoPedido", fields: [estadoNuevoId], references: [id], onDelete: Restrict)
+  creadoPor      Usuario?       @relation(fields: [creadoPorUsuarioId], references: [id], onDelete: SetNull)
+
+  @@index([pedidoId])
+  @@index([estadoNuevoId])
+  @@index([creadoEn])
+  @@map("historial_estados_pedido")
+}
+
+// ------------------------------------------------------------
+// AsignacionPedido — historial de asignaciones del pedido a un vendedor
+// Al reasignar: NO se sobrescribe el registro anterior.
+// Se cierra la asignación activa con fechaFinAsignacion y se crea un nuevo registro.
+// La asignación actualmente activa es la que tiene fechaFinAsignacion IS NULL.
+// Esto permite auditar todos los cambios de vendedor con motivo y autorizador.
+// ------------------------------------------------------------
+model AsignacionPedido {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pedidoId              String    @map("pedido_id") @db.Uuid
+  vendedorId            String    @map("vendedor_id") @db.Uuid
+  asignadoPorUsuarioId  String    @map("asignado_por_usuario_id") @db.Uuid
+  fechaInicioAsignacion DateTime  @map("fecha_inicio_asignacion")
+  fechaFinAsignacion    DateTime? @map("fecha_fin_asignacion")
+  motivo                String?   @db.VarChar(500)
+  observaciones         String?   @db.Text
+  creadoEn              DateTime  @default(now()) @map("creado_en")
+  actualizadoEn         DateTime  @updatedAt @map("actualizado_en")
+
+  pedido      Pedido  @relation(fields: [pedidoId], references: [id], onDelete: Restrict)
+  vendedor    Usuario @relation("AsignacionVendedor", fields: [vendedorId], references: [id], onDelete: Restrict)
+  asignadoPor Usuario @relation("AsignacionRealizadaPor", fields: [asignadoPorUsuarioId], references: [id], onDelete: Restrict)
+
+  @@index([pedidoId])
+  @@index([vendedorId])
+  @@index([pedidoId, fechaFinAsignacion])
+  @@map("asignaciones_pedido")
+}
+
+// ------------------------------------------------------------
+// BloqueoPedido — registro de bloqueos activos o históricos de un pedido
+// Un pedido bloqueado no puede avanzar en producción ni despacho sin resolución explícita.
+// FACTURA_ANULADA: ContaPyme anuló la factura; bloqueo obligatorio hasta revisión del admin.
+// bloqueadoPorUsuarioId: nullable si el bloqueo fue generado automáticamente por el sistema.
+// fechaDesbloqueo: se llena cuando el administrador resuelve el bloqueo; el registro no se elimina.
+// ------------------------------------------------------------
+model BloqueoPedido {
+  id                       String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pedidoId                 String      @map("pedido_id") @db.Uuid
+  tipoBloqueo              TipoBloqueo @map("tipo_bloqueo")
+  motivoBloqueo            String      @map("motivo_bloqueo") @db.VarChar(500)
+  bloqueadoPorUsuarioId    String?     @map("bloqueado_por_usuario_id") @db.Uuid
+  desbloqueadoPorUsuarioId String?     @map("desbloqueado_por_usuario_id") @db.Uuid
+  fechaBloqueo             DateTime    @map("fecha_bloqueo")
+  fechaDesbloqueo          DateTime?   @map("fecha_desbloqueo")
+  observaciones            String?     @db.Text
+  metadata                 Json?       @db.JsonB
+  creadoEn                 DateTime    @default(now()) @map("creado_en")
+  actualizadoEn            DateTime    @updatedAt @map("actualizado_en")
+
+  pedido          Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Restrict)
+  bloqueadoPor    Usuario? @relation("BloqueoPedidoCreadoPor", fields: [bloqueadoPorUsuarioId], references: [id], onDelete: SetNull)
+  desbloqueadoPor Usuario? @relation("BloqueoPedidoDesbloqueadoPor", fields: [desbloqueadoPorUsuarioId], references: [id], onDelete: SetNull)
+
+  @@index([pedidoId])
+  @@index([tipoBloqueo])
+  @@index([fechaDesbloqueo])
+  @@map("bloqueos_pedido")
+}
+
+// ------------------------------------------------------------
+// PedidoSede — historial de traslados o cambios de sede de un pedido
+// Registra cada movimiento con trazabilidad completa: solicitante, autorizador, motivo.
+// No tiene actualizadoEn: cada evento de movimiento es inmutable.
+// Compras debe ser notificado para validar disponibilidad de materiales en la nueva sede.
+// ------------------------------------------------------------
+model PedidoSede {
+  id                     String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pedidoId               String             @map("pedido_id") @db.Uuid
+  sedeOrigenId           String             @map("sede_origen_id") @db.Uuid
+  sedeDestinoId          String             @map("sede_destino_id") @db.Uuid
+  tipoMovimientoSede     TipoMovimientoSede @map("tipo_movimiento_sede")
+  solicitadoPorUsuarioId String             @map("solicitado_por_usuario_id") @db.Uuid
+  autorizadoPorUsuarioId String?            @map("autorizado_por_usuario_id") @db.Uuid
+  fechaMovimiento        DateTime           @map("fecha_movimiento")
+  observaciones          String             @db.Text
+  metadata               Json?              @db.JsonB
+  creadoEn               DateTime           @default(now()) @map("creado_en")
+
+  pedido        Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Restrict)
+  sedeOrigen    Sede     @relation("PedidoSedeOrigen", fields: [sedeOrigenId], references: [id], onDelete: Restrict)
+  sedeDestino   Sede     @relation("PedidoSedeDestino", fields: [sedeDestinoId], references: [id], onDelete: Restrict)
+  solicitadoPor Usuario  @relation("PedidoSedeSolicitadaPor", fields: [solicitadoPorUsuarioId], references: [id], onDelete: Restrict)
+  autorizadoPor Usuario? @relation("PedidoSedeAutorizadaPor", fields: [autorizadoPorUsuarioId], references: [id], onDelete: SetNull)
+
+  @@index([pedidoId])
+  @@index([sedeOrigenId])
+  @@index([sedeDestinoId])
+  @@map("pedido_sedes")
+}
+
+// ------------------------------------------------------------
+// FacturaPedido — relación explícita entre facturas y pedidos (pendiente del Bloque 3)
+// esPrincipal: identifica la factura principal operativa del pedido. Un pedido debe tener
+// una sola factura PRINCIPAL; las adicionales amplían o complementan el alcance.
+// La restricción de unicidad de esPrincipal=true por pedido se valida en backend.
+// tipoRelacion REEMPLAZO: nueva factura sustituye operativamente a la anterior anulada.
+// tipoRelacion DEVOLUCION: nota crédito vinculada al pedido por reclamo o ajuste.
+// ------------------------------------------------------------
+model FacturaPedido {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  facturaId               String                    @map("factura_id") @db.Uuid
+  pedidoId                String                    @map("pedido_id") @db.Uuid
+  tipoRelacion            TipoRelacionFacturaPedido @map("tipo_relacion")
+  esPrincipal             Boolean                   @default(false) @map("es_principal")
+  fechaRelacion           DateTime                  @map("fecha_relacion")
+  relacionadoPorUsuarioId String                    @map("relacionado_por_usuario_id") @db.Uuid
+  observaciones           String?                   @db.Text
+  creadoEn                DateTime                  @default(now()) @map("creado_en")
+  actualizadoEn           DateTime                  @updatedAt @map("actualizado_en")
+
+  factura        Factura @relation(fields: [facturaId], references: [id], onDelete: Restrict)
+  pedido         Pedido  @relation(fields: [pedidoId], references: [id], onDelete: Restrict)
+  relacionadoPor Usuario @relation(fields: [relacionadoPorUsuarioId], references: [id], onDelete: Restrict)
+
+  @@unique([facturaId, pedidoId, tipoRelacion])
+  @@index([facturaId])
+  @@index([pedidoId])
+  @@index([esPrincipal])
+  @@map("factura_pedido")
 }
