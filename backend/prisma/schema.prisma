@@ -52,17 +52,22 @@ model Sede {
   creadoEn      DateTime @default(now()) @map("creado_en")
   actualizadoEn DateTime @updatedAt @map("actualizado_en")
 
-  usuarios               Usuario[]
-  maquinas               Maquina[]
-  ubicaciones            Ubicacion[]
-  clientesPrincipales    Cliente[]
-  documentos             Documento[]  @relation("DocumentoSede")
-  facturas               Factura[]    @relation("FacturaSede")
-  pedidosComoVenta       Pedido[]     @relation("PedidoSedeVenta")
-  pedidosComoResponsable Pedido[]     @relation("PedidoSedeResponsable")
-  pedidosComoDespacho    Pedido[]     @relation("PedidoSedeDespacho")
-  pedidoSedesOrigen      PedidoSede[] @relation("PedidoSedeOrigen")
-  pedidoSedesDestino     PedidoSede[] @relation("PedidoSedeDestino")
+  usuarios                        Usuario[]
+  maquinas                        Maquina[]
+  ubicaciones                     Ubicacion[]
+  clientesPrincipales             Cliente[]
+  documentos                      Documento[]       @relation("DocumentoSede")
+  facturas                        Factura[]         @relation("FacturaSede")
+  pedidosComoVenta                Pedido[]          @relation("PedidoSedeVenta")
+  pedidosComoResponsable          Pedido[]          @relation("PedidoSedeResponsable")
+  pedidosComoDespacho             Pedido[]          @relation("PedidoSedeDespacho")
+  pedidoSedesOrigen               PedidoSede[]      @relation("PedidoSedeOrigen")
+  pedidoSedesDestino              PedidoSede[]      @relation("PedidoSedeDestino")
+  ordenesProduccionComoProduccion OrdenProduccion[] @relation("OrdenSedeProduccion")
+  ordenesProduccionComoDespacho   OrdenProduccion[] @relation("OrdenSedeDespacho")
+  ordenesProduccionComoActual     OrdenProduccion[] @relation("OrdenSedeActual")
+  subordenesComoProduccion        Suborden[]        @relation("SubordenSedeProduccion")
+  subordenesComoDespacho          Suborden[]        @relation("SubordenSedeDespacho")
 
   @@map("sedes")
 }
@@ -100,31 +105,42 @@ model Usuario {
   actualizadoEn DateTime  @updatedAt @map("actualizado_en")
   ultimoAcceso  DateTime? @map("ultimo_acceso")
 
-  sede                        Sede                    @relation(fields: [sedeId], references: [id], onDelete: Restrict)
-  rol                         Rol                     @relation(fields: [rolId], references: [id], onDelete: Restrict)
-  auditorias                  AuditoriaGeneral[]
-  documentosCreados           Documento[]             @relation("DocumentoCreadoPor")
-  versionesSubidas            DocumentoVersion[]      @relation("VersionSubidaPor")
-  facturasComoVendedor        Factura[]               @relation("FacturaVendedor")
-  facturasCreadas             Factura[]               @relation("FacturaCreadaPor")
-  itemsMapeados               FacturaItem[]           @relation("ItemMapeadoPor")
-  documentosRelacionados      DocumentoRelacionado[]  @relation("DocumentoRelacionadoPor")
-  lecturasDocumento           LecturaDocumento[]      @relation("LecturaProcesadaPor")
-  pedidosComoVendedor         Pedido[]                @relation("PedidoVendedor")
-  pedidosCreados              Pedido[]                @relation("PedidoCreadoPor")
-  validacionesPedido          ValidacionPedido[]
-  asignacionesComoVendedor    AsignacionPedido[]      @relation("AsignacionVendedor")
-  asignacionesRealizadas      AsignacionPedido[]      @relation("AsignacionRealizadaPor")
-  materialesClienteRecibidos  MaterialCliente[]       @relation("MaterialClienteRecibidoPor")
-  materialesClienteCreados    MaterialCliente[]       @relation("MaterialClienteCreadoPor")
-  bloqueosPedidoCreados       BloqueoPedido[]         @relation("BloqueoPedidoCreadoPor")
-  bloqueosPedidoDesbloqueados BloqueoPedido[]         @relation("BloqueoPedidoDesbloqueadoPor")
-  pedidoSedesSolicitadas      PedidoSede[]            @relation("PedidoSedeSolicitadaPor")
-  pedidoSedesAutorizadas      PedidoSede[]            @relation("PedidoSedeAutorizadaPor")
-  historialEstadosPedido      HistorialEstadoPedido[]
-  entregasRealizadas          Entrega[]
-  facturasPedidoRelacionadas  FacturaPedido[]
-  pedidoItemDocumentosCreados PedidoItemDocumento[]
+  sede                          Sede                      @relation(fields: [sedeId], references: [id], onDelete: Restrict)
+  rol                           Rol                       @relation(fields: [rolId], references: [id], onDelete: Restrict)
+  auditorias                    AuditoriaGeneral[]
+  documentosCreados             Documento[]               @relation("DocumentoCreadoPor")
+  versionesSubidas              DocumentoVersion[]        @relation("VersionSubidaPor")
+  facturasComoVendedor          Factura[]                 @relation("FacturaVendedor")
+  facturasCreadas               Factura[]                 @relation("FacturaCreadaPor")
+  itemsMapeados                 FacturaItem[]             @relation("ItemMapeadoPor")
+  documentosRelacionados        DocumentoRelacionado[]    @relation("DocumentoRelacionadoPor")
+  lecturasDocumento             LecturaDocumento[]        @relation("LecturaProcesadaPor")
+  pedidosComoVendedor           Pedido[]                  @relation("PedidoVendedor")
+  pedidosCreados                Pedido[]                  @relation("PedidoCreadoPor")
+  validacionesPedido            ValidacionPedido[]
+  asignacionesComoVendedor      AsignacionPedido[]        @relation("AsignacionVendedor")
+  asignacionesRealizadas        AsignacionPedido[]        @relation("AsignacionRealizadaPor")
+  materialesClienteRecibidos    MaterialCliente[]         @relation("MaterialClienteRecibidoPor")
+  materialesClienteCreados      MaterialCliente[]         @relation("MaterialClienteCreadoPor")
+  bloqueosPedidoCreados         BloqueoPedido[]           @relation("BloqueoPedidoCreadoPor")
+  bloqueosPedidoDesbloqueados   BloqueoPedido[]           @relation("BloqueoPedidoDesbloqueadoPor")
+  pedidoSedesSolicitadas        PedidoSede[]              @relation("PedidoSedeSolicitadaPor")
+  pedidoSedesAutorizadas        PedidoSede[]              @relation("PedidoSedeAutorizadaPor")
+  historialEstadosPedido        HistorialEstadoPedido[]
+  entregasRealizadas            Entrega[]
+  facturasPedidoRelacionadas    FacturaPedido[]
+  pedidoItemDocumentosCreados   PedidoItemDocumento[]
+  ordenesProduccionCreadas      OrdenProduccion[]         @relation("OrdenProduccionCreadaPor")
+  subordenesCreadas             Suborden[]                @relation("SubordenCreadaPor")
+  asignacionesOrdenComoOperador OrdenAsignacion[]         @relation("OrdenAsignacionOperador")
+  asignacionesOrdenRealizadas   OrdenAsignacion[]         @relation("OrdenAsignacionRealizadaPor")
+  eventosOperativos             EventoOperativo[]
+  novedadesReportadas           NovedadOperativa[]
+  reprocesosAutorizados         Reproceso[]               @relation("ReprocesoAutorizadoPor")
+  reprocesosCreados             Reproceso[]               @relation("ReprocesoCreadoPor")
+  historialEstadosOrden         HistorialEstadoOrden[]
+  historialEstadosSuborden      HistorialEstadoSuborden[]
+  calculoPerdidasAutorizados    CalculoPerdidas[]
 
   @@index([sedeId])
   @@index([rolId])
@@ -213,11 +229,18 @@ model EstadoSistema {
   creadoEn        DateTime @default(now()) @map("creado_en")
   actualizadoEn   DateTime @updatedAt @map("actualizado_en")
 
-  transicionesComoOrigen   TransicionEstado[]      @relation("EstadoOrigen")
-  transicionesComoDestino  TransicionEstado[]      @relation("EstadoDestino")
-  pedidos                  Pedido[]                @relation("PedidoEstado")
-  historialAnteriorPedidos HistorialEstadoPedido[] @relation("EstadoAnteriorPedido")
-  historialNuevoPedidos    HistorialEstadoPedido[] @relation("EstadoNuevoPedido")
+  transicionesComoOrigen      TransicionEstado[]        @relation("EstadoOrigen")
+  transicionesComoDestino     TransicionEstado[]        @relation("EstadoDestino")
+  pedidos                     Pedido[]                  @relation("PedidoEstado")
+  historialAnteriorPedidos    HistorialEstadoPedido[]   @relation("EstadoAnteriorPedido")
+  historialNuevoPedidos       HistorialEstadoPedido[]   @relation("EstadoNuevoPedido")
+  ordenesProduccion           OrdenProduccion[]         @relation("OrdenEstado")
+  subordenes                  Suborden[]                @relation("SubordenEstado")
+  ordenEtapas                 OrdenEtapa[]              @relation("OrdenEtapaEstado")
+  historialAnteriorOrdenes    HistorialEstadoOrden[]    @relation("EstadoAnteriorOrden")
+  historialNuevoOrdenes       HistorialEstadoOrden[]    @relation("EstadoNuevoOrden")
+  historialAnteriorSubordenes HistorialEstadoSuborden[] @relation("EstadoAnteriorSuborden")
+  historialNuevoSubordenes    HistorialEstadoSuborden[] @relation("EstadoNuevoSuborden")
 
   @@unique([modulo, codigo])
   @@index([modulo])
@@ -374,9 +397,11 @@ model Item {
   creadoEn              DateTime     @default(now()) @map("creado_en")
   actualizadoEn         DateTime     @updatedAt @map("actualizado_en")
 
-  tipoItem     TipoItem      @relation(fields: [tipoItemId], references: [id], onDelete: Restrict)
-  facturaItems FacturaItem[]
-  pedidoItems  PedidoItem[]
+  tipoItem                TipoItem      @relation(fields: [tipoItemId], references: [id], onDelete: Restrict)
+  facturaItems            FacturaItem[]
+  pedidoItems             PedidoItem[]
+  reprocesosComoOrigen    Reproceso[]   @relation("ReprocesoItemOrigen")
+  reprocesosComoUtilizado Reproceso[]   @relation("ReprocesoItemUtilizado")
 
   @@index([codigo])
   @@index([tipoItemId])
@@ -476,7 +501,9 @@ model Maquina {
   creadoEn      DateTime @default(now()) @map("creado_en")
   actualizadoEn DateTime @updatedAt @map("actualizado_en")
 
-  sede Sede @relation(fields: [sedeId], references: [id], onDelete: Restrict)
+  sede              Sede              @relation(fields: [sedeId], references: [id], onDelete: Restrict)
+  ordenesProduccion OrdenProduccion[] @relation("OrdenMaquinaPrincipal")
+  asignacionesOrden OrdenAsignacion[]
 
   @@index([sedeId])
   @@index([activo])
@@ -518,6 +545,8 @@ model TipoNovedad {
   activo        Boolean        @default(true)
   creadoEn      DateTime       @default(now()) @map("creado_en")
   actualizadoEn DateTime       @updatedAt @map("actualizado_en")
+
+  novedadesOperativas NovedadOperativa[]
 
   @@index([aplicaA])
   @@map("tipos_novedad")
@@ -969,22 +998,25 @@ model Pedido {
   creadoEn              DateTime  @default(now()) @map("creado_en")
   actualizadoEn         DateTime  @updatedAt @map("actualizado_en")
 
-  sedeVenta         Sede                    @relation("PedidoSedeVenta", fields: [sedeVentaId], references: [id], onDelete: Restrict)
-  sedeResponsable   Sede                    @relation("PedidoSedeResponsable", fields: [sedeResponsableId], references: [id], onDelete: Restrict)
-  sedeDespacho      Sede?                   @relation("PedidoSedeDespacho", fields: [sedeDespachoId], references: [id], onDelete: SetNull)
-  cliente           Cliente                 @relation(fields: [clienteId], references: [id], onDelete: Restrict)
-  vendedor          Usuario?                @relation("PedidoVendedor", fields: [vendedorId], references: [id], onDelete: SetNull)
-  creadoPor         Usuario                 @relation("PedidoCreadoPor", fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
-  estadoPedido      EstadoSistema           @relation("PedidoEstado", fields: [estadoPedidoId], references: [id], onDelete: Restrict)
-  items             PedidoItem[]
-  materialesCliente MaterialCliente[]
-  validaciones      ValidacionPedido[]
-  entregas          Entrega[]
-  historialEstados  HistorialEstadoPedido[]
-  asignaciones      AsignacionPedido[]
-  bloqueos          BloqueoPedido[]
-  sedes             PedidoSede[]
-  facturasPedido    FacturaPedido[]
+  sedeVenta            Sede                    @relation("PedidoSedeVenta", fields: [sedeVentaId], references: [id], onDelete: Restrict)
+  sedeResponsable      Sede                    @relation("PedidoSedeResponsable", fields: [sedeResponsableId], references: [id], onDelete: Restrict)
+  sedeDespacho         Sede?                   @relation("PedidoSedeDespacho", fields: [sedeDespachoId], references: [id], onDelete: SetNull)
+  cliente              Cliente                 @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  vendedor             Usuario?                @relation("PedidoVendedor", fields: [vendedorId], references: [id], onDelete: SetNull)
+  creadoPor            Usuario                 @relation("PedidoCreadoPor", fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
+  estadoPedido         EstadoSistema           @relation("PedidoEstado", fields: [estadoPedidoId], references: [id], onDelete: Restrict)
+  items                PedidoItem[]
+  materialesCliente    MaterialCliente[]
+  validaciones         ValidacionPedido[]
+  entregas             Entrega[]
+  historialEstados     HistorialEstadoPedido[]
+  asignaciones         AsignacionPedido[]
+  bloqueos             BloqueoPedido[]
+  sedes                PedidoSede[]
+  facturasPedido       FacturaPedido[]
+  ordenesProduccion    OrdenProduccion[]
+  subordenes           Suborden[]
+  reprocesosComoOrigen Reproceso[]             @relation("ReprocesoOrigenPedido")
 
   @@index([sedeVentaId])
   @@index([sedeResponsableId])
@@ -1066,12 +1098,15 @@ model PedidoItemDocumento {
 // Debe ser recibido y validado físicamente antes de comenzar a procesar.
 // Los sobrantes pertenecen al cliente; en V1.0 no se controlan salvo PQRS por faltante.
 // pedidoItemId: vínculo opcional al ítem del pedido que usa este material.
-// Nota: los campos ordenProduccionId y subordenId se agregarán en el Bloque 5.
+// ordenProduccionId: orden de producción que procesa este material (nullable).
+// subordenId: suborden que procesa este material (nullable).
 // ------------------------------------------------------------
 model MaterialCliente {
   id                   String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   pedidoId             String                @map("pedido_id") @db.Uuid
   pedidoItemId         String?               @map("pedido_item_id") @db.Uuid
+  ordenProduccionId    String?               @map("orden_produccion_id") @db.Uuid
+  subordenId           String?               @map("suborden_id") @db.Uuid
   tipoMaterial         TipoMaterialCliente   @map("tipo_material")
   descripcion          String                @db.VarChar(500)
   cantidad             Decimal               @db.Decimal(14, 4)
@@ -1086,13 +1121,17 @@ model MaterialCliente {
   creadoEn             DateTime              @default(now()) @map("creado_en")
   actualizadoEn        DateTime              @updatedAt @map("actualizado_en")
 
-  pedido      Pedido      @relation(fields: [pedidoId], references: [id], onDelete: Restrict)
-  pedidoItem  PedidoItem? @relation(fields: [pedidoItemId], references: [id], onDelete: SetNull)
-  recibidoPor Usuario?    @relation("MaterialClienteRecibidoPor", fields: [recibidoPorUsuarioId], references: [id], onDelete: SetNull)
-  creadoPor   Usuario     @relation("MaterialClienteCreadoPor", fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
+  pedido          Pedido           @relation(fields: [pedidoId], references: [id], onDelete: Restrict)
+  pedidoItem      PedidoItem?      @relation(fields: [pedidoItemId], references: [id], onDelete: SetNull)
+  ordenProduccion OrdenProduccion? @relation(fields: [ordenProduccionId], references: [id], onDelete: SetNull)
+  suborden        Suborden?        @relation(fields: [subordenId], references: [id], onDelete: SetNull)
+  recibidoPor     Usuario?         @relation("MaterialClienteRecibidoPor", fields: [recibidoPorUsuarioId], references: [id], onDelete: SetNull)
+  creadoPor       Usuario          @relation("MaterialClienteCreadoPor", fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
 
   @@index([pedidoId])
   @@index([pedidoItemId])
+  @@index([ordenProduccionId])
+  @@index([subordenId])
   @@index([estado])
   @@map("material_cliente")
 }
@@ -1339,4 +1378,429 @@ model FacturaPedido {
   @@index([pedidoId])
   @@index([esPrincipal])
   @@map("factura_pedido")
+}
+
+// =============================================================
+// BLOQUE 5 — Producción y Subórdenes
+// =============================================================
+
+// ------------------------------------------------------------
+// Enum: tipo de evento registrado durante el proceso productivo
+// INICIO_ETAPA / FIN_ETAPA: marca el inicio y fin de una etapa de producción.
+// NOVEDAD: situación inesperada que interrumpe o altera el proceso.
+// REPROCESO: una pieza debe reprocessarse por daño, error o rechazo.
+// CAMBIO_PRIORIDAD: se modifica el orden de prioridad de la orden o suborden.
+// ASIGNACION_MAQUINA: se asigna o cambia la máquina principal de la orden.
+// AUTORIZACION: un responsable aprueba una acción crítica.
+// PAUSA: la producción se detiene temporalmente de forma controlada.
+// ------------------------------------------------------------
+enum TipoEventoOperativo {
+  INICIO_ETAPA
+  FIN_ETAPA
+  NOVEDAD
+  REPROCESO
+  CAMBIO_PRIORIDAD
+  ASIGNACION_MAQUINA
+  AUTORIZACION
+  PAUSA
+}
+
+// ------------------------------------------------------------
+// EtapaProduccion — catálogo de etapas del proceso productivo
+// Ejemplos: CORTE, ENCHAPE, PERFORACION, ARMADO, CONTROL_CALIDAD
+// orden define la secuencia típica de ejecución dentro del flujo productivo.
+// ------------------------------------------------------------
+model EtapaProduccion {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre        String   @unique @db.VarChar(100)
+  codigo        String   @unique @db.VarChar(50)
+  descripcion   String?  @db.Text
+  orden         Int
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  ordenEtapas OrdenEtapa[]
+
+  @@index([orden])
+  @@map("etapas_produccion")
+}
+
+// ------------------------------------------------------------
+// OrdenProduccion — unidad de trabajo productivo para un pedido
+// estadoOrdenId: FK a estados_sistema (no enum libre); permite configuración
+// dinámica de estados sin migraciones adicionales.
+// sedeProduccionId: sede donde se ejecuta la producción física.
+// sedeDespachoId: sede desde donde saldrá el producto terminado (nullable si no definida aún).
+// sedeActualId: sede donde se encuentra físicamente la orden en este momento.
+// maquinaPrincipalId: máquina CNC principal asignada (nullable si aún no se asigna).
+// generadaAutomaticamente: true si fue propuesta por el sistema al cargar el pedido.
+// ordenPrioridad: entero para ordenar la cola de producción (menor = mayor urgencia).
+// IMPORTANTE: cambios de estado deben escribirse junto con historial_estados_orden
+// y auditoria_general dentro de la misma transacción para garantizar atomicidad.
+// ------------------------------------------------------------
+model OrdenProduccion {
+  id                      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pedidoId                String    @map("pedido_id") @db.Uuid
+  sedeProduccionId        String    @map("sede_produccion_id") @db.Uuid
+  sedeDespachoId          String?   @map("sede_despacho_id") @db.Uuid
+  sedeActualId            String    @map("sede_actual_id") @db.Uuid
+  maquinaPrincipalId      String?   @map("maquina_principal_id") @db.Uuid
+  estadoOrdenId           String    @map("estado_orden_id") @db.Uuid
+  creadoPorUsuarioId      String    @map("creado_por_usuario_id") @db.Uuid
+  generadaAutomaticamente Boolean   @default(false) @map("generada_automaticamente")
+  ordenPrioridad          Int       @default(0) @map("orden_prioridad")
+  fechaInicioPlaneada     DateTime? @map("fecha_inicio_planeada")
+  fechaFinPlaneada        DateTime? @map("fecha_fin_planeada")
+  fechaInicioReal         DateTime? @map("fecha_inicio_real")
+  fechaFinReal            DateTime? @map("fecha_fin_real")
+  observaciones           String?   @db.Text
+  metadata                Json?     @db.JsonB
+  creadoEn                DateTime  @default(now()) @map("creado_en")
+  actualizadoEn           DateTime  @updatedAt @map("actualizado_en")
+
+  pedido            Pedido                 @relation(fields: [pedidoId], references: [id], onDelete: Restrict)
+  sedeProduccion    Sede                   @relation("OrdenSedeProduccion", fields: [sedeProduccionId], references: [id], onDelete: Restrict)
+  sedeDespacho      Sede?                  @relation("OrdenSedeDespacho", fields: [sedeDespachoId], references: [id], onDelete: SetNull)
+  sedeActual        Sede                   @relation("OrdenSedeActual", fields: [sedeActualId], references: [id], onDelete: Restrict)
+  maquinaPrincipal  Maquina?               @relation("OrdenMaquinaPrincipal", fields: [maquinaPrincipalId], references: [id], onDelete: SetNull)
+  estadoOrden       EstadoSistema          @relation("OrdenEstado", fields: [estadoOrdenId], references: [id], onDelete: Restrict)
+  creadoPor         Usuario                @relation("OrdenProduccionCreadaPor", fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
+  subordenes        Suborden[]
+  etapas            OrdenEtapa[]           @relation("OrdenEtapaOrden")
+  eventos           EventoOperativo[]
+  novedades         NovedadOperativa[]
+  materialesCliente MaterialCliente[]
+  historialEstados  HistorialEstadoOrden[]
+  calculosPerdidas  CalculoPerdidas[]
+
+  @@index([pedidoId])
+  @@index([sedeProduccionId])
+  @@index([sedeActualId])
+  @@index([estadoOrdenId])
+  @@index([ordenPrioridad])
+  @@map("ordenes_produccion")
+}
+
+// ------------------------------------------------------------
+// Suborden — unidad de trabajo específica dentro de una orden o pedido
+// Representa procesos adicionales: perforaciones, reengrueses, entamborados,
+// instalación de perfilería, armado de puertas, servicios especiales de taller.
+// pedidoId: siempre requerido; la suborden pertenece a un pedido.
+// ordenProduccionId: opcional; la suborden puede ser hija de una orden específica
+// o mantenerse al nivel del pedido para servicios generales no ligados a una orden.
+// generadaAutomaticamente: true si fue sugerida por el sistema al analizar el pedido.
+// IMPORTANTE: cambios de estado deben escribirse junto con historial_estados_suborden
+// y auditoria_general dentro de la misma transacción para garantizar atomicidad.
+// ------------------------------------------------------------
+model Suborden {
+  id                      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pedidoId                String    @map("pedido_id") @db.Uuid
+  ordenProduccionId       String?   @map("orden_produccion_id") @db.Uuid
+  sedeProduccionId        String    @map("sede_produccion_id") @db.Uuid
+  sedeDespachoId          String?   @map("sede_despacho_id") @db.Uuid
+  estadoSubordenId        String    @map("estado_suborden_id") @db.Uuid
+  creadoPorUsuarioId      String    @map("creado_por_usuario_id") @db.Uuid
+  generadaAutomaticamente Boolean   @default(false) @map("generada_automaticamente")
+  tipoSuborden            String    @map("tipo_suborden") @db.VarChar(150)
+  ordenPrioridad          Int       @default(0) @map("orden_prioridad")
+  fechaInicioPlaneada     DateTime? @map("fecha_inicio_planeada")
+  fechaFinPlaneada        DateTime? @map("fecha_fin_planeada")
+  fechaInicioReal         DateTime? @map("fecha_inicio_real")
+  fechaFinReal            DateTime? @map("fecha_fin_real")
+  observaciones           String?   @db.Text
+  metadata                Json?     @db.JsonB
+  creadoEn                DateTime  @default(now()) @map("creado_en")
+  actualizadoEn           DateTime  @updatedAt @map("actualizado_en")
+
+  pedido            Pedido                    @relation(fields: [pedidoId], references: [id], onDelete: Restrict)
+  ordenProduccion   OrdenProduccion?          @relation(fields: [ordenProduccionId], references: [id], onDelete: SetNull)
+  sedeProduccion    Sede                      @relation("SubordenSedeProduccion", fields: [sedeProduccionId], references: [id], onDelete: Restrict)
+  sedeDespacho      Sede?                     @relation("SubordenSedeDespacho", fields: [sedeDespachoId], references: [id], onDelete: SetNull)
+  estadoSuborden    EstadoSistema             @relation("SubordenEstado", fields: [estadoSubordenId], references: [id], onDelete: Restrict)
+  creadoPor         Usuario                   @relation("SubordenCreadaPor", fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
+  etapas            OrdenEtapa[]              @relation("OrdenEtapaSuborden")
+  eventos           EventoOperativo[]
+  novedades         NovedadOperativa[]
+  materialesCliente MaterialCliente[]
+  historialEstados  HistorialEstadoSuborden[]
+
+  @@index([pedidoId])
+  @@index([ordenProduccionId])
+  @@index([sedeProduccionId])
+  @@index([estadoSubordenId])
+  @@index([ordenPrioridad])
+  @@map("subordenes")
+}
+
+// ------------------------------------------------------------
+// OrdenEtapa — etapa de producción asignada a una orden o suborden
+// RESTRICCIÓN XOR: exactamente uno de (ordenProduccionId, subordenId) debe ser NOT NULL.
+// Prisma 5 no puede expresar CHECK constraints; aplicar en SQL directamente:
+//   ALTER TABLE orden_etapas
+//   ADD CONSTRAINT chk_orden_etapa_xor
+//   CHECK (
+//     (orden_produccion_id IS NOT NULL AND suborden_id IS NULL) OR
+//     (orden_produccion_id IS NULL     AND suborden_id IS NOT NULL)
+//   );
+// Además, validar en backend (service layer) antes de persistir.
+// estadoEtapaId: FK a estados_sistema módulo 'etapa_produccion'.
+// ------------------------------------------------------------
+model OrdenEtapa {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ordenProduccionId String?   @map("orden_produccion_id") @db.Uuid
+  subordenId        String?   @map("suborden_id") @db.Uuid
+  etapaProduccionId String    @map("etapa_produccion_id") @db.Uuid
+  estadoEtapaId     String    @map("estado_etapa_id") @db.Uuid
+  fechaInicio       DateTime? @map("fecha_inicio")
+  fechaFin          DateTime? @map("fecha_fin")
+  observaciones     String?   @db.Text
+  creadoEn          DateTime  @default(now()) @map("creado_en")
+  actualizadoEn     DateTime  @updatedAt @map("actualizado_en")
+
+  ordenProduccion OrdenProduccion?  @relation("OrdenEtapaOrden", fields: [ordenProduccionId], references: [id], onDelete: SetNull)
+  suborden        Suborden?         @relation("OrdenEtapaSuborden", fields: [subordenId], references: [id], onDelete: SetNull)
+  etapaProduccion EtapaProduccion   @relation(fields: [etapaProduccionId], references: [id], onDelete: Restrict)
+  estadoEtapa     EstadoSistema     @relation("OrdenEtapaEstado", fields: [estadoEtapaId], references: [id], onDelete: Restrict)
+  asignaciones    OrdenAsignacion[]
+
+  @@index([ordenProduccionId])
+  @@index([subordenId])
+  @@index([etapaProduccionId])
+  @@index([estadoEtapaId])
+  @@map("orden_etapas")
+}
+
+// ------------------------------------------------------------
+// OrdenAsignacion — asignación de operario y máquina a una orden de producción
+// Al reasignar: NO se sobrescribe el registro anterior.
+// Se cierra la asignación activa con fechaFinAsignacion y se crea un nuevo registro.
+// La asignación activa es la que tiene fechaFinAsignacion IS NULL.
+// Permite auditar todos los cambios de operario/máquina durante el ciclo de vida de la orden.
+// ------------------------------------------------------------
+model OrdenAsignacion {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ordenEtapaId          String    @map("orden_etapa_id") @db.Uuid
+  maquinaId             String?   @map("maquina_id") @db.Uuid
+  operadorId            String    @map("operador_id") @db.Uuid
+  asignadoPorUsuarioId  String    @map("asignado_por_usuario_id") @db.Uuid
+  fechaInicioAsignacion DateTime  @map("fecha_inicio_asignacion")
+  fechaFinAsignacion    DateTime? @map("fecha_fin_asignacion")
+  motivo                String?   @db.VarChar(500)
+  observaciones         String?   @db.Text
+  creadoEn              DateTime  @default(now()) @map("creado_en")
+  actualizadoEn         DateTime  @updatedAt @map("actualizado_en")
+
+  ordenEtapa  OrdenEtapa @relation(fields: [ordenEtapaId], references: [id], onDelete: Restrict)
+  maquina     Maquina?   @relation(fields: [maquinaId], references: [id], onDelete: SetNull)
+  operador    Usuario    @relation("OrdenAsignacionOperador", fields: [operadorId], references: [id], onDelete: Restrict)
+  asignadoPor Usuario    @relation("OrdenAsignacionRealizadaPor", fields: [asignadoPorUsuarioId], references: [id], onDelete: Restrict)
+
+  @@index([ordenEtapaId])
+  @@index([operadorId])
+  @@index([ordenEtapaId, fechaFinAsignacion])
+  @@map("orden_asignaciones")
+}
+
+// ------------------------------------------------------------
+// EventoOperativo — registro cronológico de eventos durante la producción
+// tipoEvento: controlado por enum TipoEventoOperativo para garantizar integridad.
+// Solo uno de (ordenProduccionId, subordenId) debe estar activo por evento;
+// validar en backend antes de persistir.
+// No tiene actualizadoEn: el registro de evento es inmutable.
+// ------------------------------------------------------------
+model EventoOperativo {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ordenProduccionId String?             @map("orden_produccion_id") @db.Uuid
+  subordenId        String?             @map("suborden_id") @db.Uuid
+  tipoEvento        TipoEventoOperativo @map("tipo_evento")
+  descripcion       String              @db.Text
+  registradoPorId   String              @map("registrado_por_id") @db.Uuid
+  fechaEvento       DateTime            @map("fecha_evento")
+  metadata          Json?               @db.JsonB
+  creadoEn          DateTime            @default(now()) @map("creado_en")
+
+  ordenProduccion OrdenProduccion? @relation(fields: [ordenProduccionId], references: [id], onDelete: SetNull)
+  suborden        Suborden?        @relation(fields: [subordenId], references: [id], onDelete: SetNull)
+  registradoPor   Usuario          @relation(fields: [registradoPorId], references: [id], onDelete: Restrict)
+
+  @@index([ordenProduccionId])
+  @@index([subordenId])
+  @@index([tipoEvento])
+  @@index([fechaEvento])
+  @@map("eventos_operativos")
+}
+
+// ------------------------------------------------------------
+// NovedadOperativa — registro de situaciones inesperadas que afectan la producción
+// Puede ser: daño de material, falla de máquina, error operativo, material faltante, etc.
+// reprocesoId: se llena cuando la novedad genera un reproceso; nullable hasta que se cree.
+// Relación circular con Reproceso resuelta con dos relaciones nombradas distintas:
+//   "NovedadTieneReproceso": FK en esta tabla (reprocesoId → reprocesos.id)
+//   "ReprocesoOrigenNovedad": FK en reprocesos (novedadOperativaId → novedades_operativas.id)
+// cerrada + fechaCierre: se llenan cuando la novedad queda resuelta.
+// ------------------------------------------------------------
+model NovedadOperativa {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tipoNovedadId     String    @map("tipo_novedad_id") @db.Uuid
+  ordenProduccionId String?   @map("orden_produccion_id") @db.Uuid
+  subordenId        String?   @map("suborden_id") @db.Uuid
+  // @unique garantiza 1:1 con Reproceso; la novedad tiene como máximo un reproceso resultado
+  reprocesoId       String?   @unique @map("reproceso_id") @db.Uuid
+  reportadoPorId    String    @map("reportado_por_id") @db.Uuid
+  descripcion       String    @db.Text
+  solucionAplicada  String?   @map("solucion_aplicada") @db.Text
+  fechaNovedad      DateTime  @map("fecha_novedad")
+  cerrada           Boolean   @default(false)
+  fechaCierre       DateTime? @map("fecha_cierre")
+  observaciones     String?   @db.Text
+  metadata          Json?     @db.JsonB
+  creadoEn          DateTime  @default(now()) @map("creado_en")
+  actualizadoEn     DateTime  @updatedAt @map("actualizado_en")
+
+  tipoNovedad           TipoNovedad      @relation(fields: [tipoNovedadId], references: [id], onDelete: Restrict)
+  ordenProduccion       OrdenProduccion? @relation(fields: [ordenProduccionId], references: [id], onDelete: SetNull)
+  suborden              Suborden?        @relation(fields: [subordenId], references: [id], onDelete: SetNull)
+  // FK hacia el reproceso que resultó de esta novedad (circular, resuelta con nombre)
+  novedadTieneReproceso Reproceso?       @relation("NovedadTieneReproceso", fields: [reprocesoId], references: [id], onDelete: SetNull)
+  reportadoPor          Usuario          @relation(fields: [reportadoPorId], references: [id], onDelete: Restrict)
+  // Back-ref: reprocesos que señalan esta novedad como su origen
+  reprocesosGenerados   Reproceso[]      @relation("ReprocesoOrigenNovedad")
+
+  @@index([tipoNovedadId])
+  @@index([ordenProduccionId])
+  @@index([subordenId])
+  @@index([cerrada])
+  @@map("novedades_operativas")
+}
+
+// ------------------------------------------------------------
+// Reproceso — acción correctiva derivada de una novedad operativa
+// novedadOperativaId: siempre requerido; todo reproceso nace de una novedad.
+// pedidoOrigenId: pedido de cuyo inventario se tomó material para el reproceso.
+// itemOrigenId: ítem que fue dañado o que causó la necesidad del reproceso.
+// itemId: ítem utilizado como reposición o en la solución del reproceso.
+// alertaReposicionPendiente: true cuando se usó material de otro pedido y falta reponer.
+// Relación circular con NovedadOperativa resuelta con dos relaciones nombradas distintas:
+//   "ReprocesoOrigenNovedad": FK en esta tabla (novedadOperativaId → novedades_operativas.id)
+//   "NovedadTieneReproceso": FK en novedades_operativas (reprocesoId → reprocesos.id)
+// IMPORTANTE: debe escribirse junto con novedad_operativa y auditoria_general en transacción.
+// ------------------------------------------------------------
+model Reproceso {
+  id                        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  novedadOperativaId        String   @map("novedad_operativa_id") @db.Uuid
+  pedidoOrigenId            String?  @map("pedido_origen_id") @db.Uuid
+  itemOrigenId              String?  @map("item_origen_id") @db.Uuid
+  itemId                    String?  @map("item_id") @db.Uuid
+  cantidadUsada             Decimal? @map("cantidad_usada") @db.Decimal(14, 4)
+  motivoReproceso           String   @map("motivo_reproceso") @db.VarChar(500)
+  solucionAplicada          String?  @map("solucion_aplicada") @db.Text
+  autorizadoPorUsuarioId    String   @map("autorizado_por_usuario_id") @db.Uuid
+  creadoPorUsuarioId        String   @map("creado_por_usuario_id") @db.Uuid
+  fechaReproceso            DateTime @map("fecha_reproceso")
+  costoEstimado             Decimal? @map("costo_estimado") @db.Decimal(14, 4)
+  alertaReposicionPendiente Boolean  @default(false) @map("alerta_reposicion_pendiente")
+  observaciones             String?  @db.Text
+  metadata                  Json?    @db.JsonB
+  creadoEn                  DateTime @default(now()) @map("creado_en")
+  actualizadoEn             DateTime @updatedAt @map("actualizado_en")
+
+  // Novedad que originó este reproceso (relación principal, siempre requerida)
+  novedadOperativa    NovedadOperativa  @relation("ReprocesoOrigenNovedad", fields: [novedadOperativaId], references: [id], onDelete: Restrict)
+  // Back-ref circular: la novedad que apunta a este reproceso como resultado
+  novedadConReproceso NovedadOperativa? @relation("NovedadTieneReproceso")
+  pedidoOrigen        Pedido?           @relation("ReprocesoOrigenPedido", fields: [pedidoOrigenId], references: [id], onDelete: SetNull)
+  itemOrigen          Item?             @relation("ReprocesoItemOrigen", fields: [itemOrigenId], references: [id], onDelete: SetNull)
+  item                Item?             @relation("ReprocesoItemUtilizado", fields: [itemId], references: [id], onDelete: SetNull)
+  autorizadoPor       Usuario           @relation("ReprocesoAutorizadoPor", fields: [autorizadoPorUsuarioId], references: [id], onDelete: Restrict)
+  creadoPor           Usuario           @relation("ReprocesoCreadoPor", fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
+
+  @@index([novedadOperativaId])
+  @@index([pedidoOrigenId])
+  @@index([autorizadoPorUsuarioId])
+  @@map("reprocesos")
+}
+
+// ------------------------------------------------------------
+// HistorialEstadoOrden — registro inmutable de cada cambio de estado de una orden de producción
+// IMPORTANTE: debe escribirse junto con auditoria_general dentro de la misma transacción.
+// estadoAnteriorId: nullable en la transición inicial (orden recién creada, sin estado previo).
+// No tiene actualizadoEn: el registro es inmutable una vez creado.
+// ------------------------------------------------------------
+model HistorialEstadoOrden {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ordenProduccionId  String   @map("orden_produccion_id") @db.Uuid
+  estadoAnteriorId   String?  @map("estado_anterior_id") @db.Uuid
+  estadoNuevoId      String   @map("estado_nuevo_id") @db.Uuid
+  creadoPorUsuarioId String?  @map("creado_por_usuario_id") @db.Uuid
+  observaciones      String?  @db.Text
+  metadata           Json?    @db.JsonB
+  creadoEn           DateTime @default(now()) @map("creado_en")
+
+  ordenProduccion OrdenProduccion @relation(fields: [ordenProduccionId], references: [id], onDelete: Restrict)
+  estadoAnterior  EstadoSistema?  @relation("EstadoAnteriorOrden", fields: [estadoAnteriorId], references: [id], onDelete: SetNull)
+  estadoNuevo     EstadoSistema   @relation("EstadoNuevoOrden", fields: [estadoNuevoId], references: [id], onDelete: Restrict)
+  creadoPor       Usuario?        @relation(fields: [creadoPorUsuarioId], references: [id], onDelete: SetNull)
+
+  @@index([ordenProduccionId])
+  @@index([estadoNuevoId])
+  @@index([creadoEn])
+  @@map("historial_estados_orden")
+}
+
+// ------------------------------------------------------------
+// HistorialEstadoSuborden — registro inmutable de cada cambio de estado de una suborden
+// IMPORTANTE: debe escribirse junto con auditoria_general dentro de la misma transacción.
+// estadoAnteriorId: nullable en la transición inicial (suborden recién creada).
+// No tiene actualizadoEn: el registro es inmutable una vez creado.
+// ------------------------------------------------------------
+model HistorialEstadoSuborden {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subordenId         String   @map("suborden_id") @db.Uuid
+  estadoAnteriorId   String?  @map("estado_anterior_id") @db.Uuid
+  estadoNuevoId      String   @map("estado_nuevo_id") @db.Uuid
+  creadoPorUsuarioId String?  @map("creado_por_usuario_id") @db.Uuid
+  observaciones      String?  @db.Text
+  metadata           Json?    @db.JsonB
+  creadoEn           DateTime @default(now()) @map("creado_en")
+
+  suborden       Suborden       @relation(fields: [subordenId], references: [id], onDelete: Restrict)
+  estadoAnterior EstadoSistema? @relation("EstadoAnteriorSuborden", fields: [estadoAnteriorId], references: [id], onDelete: SetNull)
+  estadoNuevo    EstadoSistema  @relation("EstadoNuevoSuborden", fields: [estadoNuevoId], references: [id], onDelete: Restrict)
+  creadoPor      Usuario?       @relation(fields: [creadoPorUsuarioId], references: [id], onDelete: SetNull)
+
+  @@index([subordenId])
+  @@index([estadoNuevoId])
+  @@index([creadoEn])
+  @@map("historial_estados_suborden")
+}
+
+// ------------------------------------------------------------
+// CalculoPerdidas — registro de pérdidas al cancelar una orden que ya inició producción
+// Solo se genera cuando una orden cancela después de haber iniciado producción.
+// Si la orden no inició producción, la cancelación es directa (sin pérdidas a calcular).
+// materialConsumido: JSONB con detalle de materiales ya procesados (ítem, cantidad, costo).
+// piezasProducidas / piezasDaniadas: conteo de piezas en estado diferente al ideal.
+// tiempoInvertidoMinutos: tiempo operativo consumido antes de la cancelación.
+// costoEstimado: impacto económico estimado; puede ser cero si no hay consumo de inventario.
+// No tiene actualizadoEn: el cálculo es inmutable una vez registrado y autorizado.
+// ------------------------------------------------------------
+model CalculoPerdidas {
+  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ordenProduccionId      String   @map("orden_produccion_id") @db.Uuid
+  materialConsumido      Json     @map("material_consumido") @db.JsonB
+  piezasProducidas       Int?     @map("piezas_producidas")
+  piezasDaniadas         Int?     @map("piezas_daniadas")
+  tiempoInvertidoMinutos Int?     @map("tiempo_invertido_minutos")
+  costoEstimado          Decimal? @map("costo_estimado") @db.Decimal(14, 4)
+  motivoCancelacion      String   @map("motivo_cancelacion") @db.VarChar(500)
+  autorizadoPorUsuarioId String   @map("autorizado_por_usuario_id") @db.Uuid
+  observaciones          String?  @db.Text
+  creadoEn               DateTime @default(now()) @map("creado_en")
+
+  ordenProduccion OrdenProduccion @relation(fields: [ordenProduccionId], references: [id], onDelete: Restrict)
+  autorizadoPor   Usuario         @relation(fields: [autorizadoPorUsuarioId], references: [id], onDelete: Restrict)
+
+  @@index([ordenProduccionId])
+  @@map("calculo_perdidas")
 }
