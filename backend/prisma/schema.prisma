@@ -52,7 +52,10 @@ model Sede {
   creadoEn      DateTime @default(now()) @map("creado_en")
   actualizadoEn DateTime @updatedAt @map("actualizado_en")
 
-  usuarios Usuario[]
+  usuarios            Usuario[]
+  maquinas            Maquina[]
+  ubicaciones         Ubicacion[]
+  clientesPrincipales Cliente[]
 
   @@map("sedes")
 }
@@ -227,4 +230,276 @@ model TransicionRolAutorizado {
 
   @@unique([transicionId, rolId])
   @@map("transiciones_roles_autorizados")
+}
+
+// =============================================================
+// BLOQUE 2 — Catálogos: Items, Clientes, Proveedores, Máquinas, Ubicaciones, Novedades, Documentos
+// =============================================================
+
+// ------------------------------------------------------------
+// Enum: comportamiento del tipo de ítem
+// Determina cómo el sistema trata los ítems de ese tipo.
+// Evita el uso de esServicio boolean redundante en el modelo Item.
+// ------------------------------------------------------------
+enum ComportamientoTipoItem {
+  PRODUCTO
+  SERVICIO
+  MATERIA_PRIMA
+  INSUMO
+}
+
+// ------------------------------------------------------------
+// Enum: unidad de medida estándar del ítem
+// Aplica según la naturaleza física del material o servicio.
+// M2: tableros y paneles. ML: enchape y tapacanto. UN: piezas y herrajes.
+// ------------------------------------------------------------
+enum UnidadMedida {
+  METRO_CUADRADO
+  METRO_LINEAL
+  UNIDAD
+  HOJA
+  KILOGRAMO
+  LITRO
+  METRO_CUBICO
+}
+
+// ------------------------------------------------------------
+// Enum: tipo de identificación fiscal o legal
+// Aplica a clientes y proveedores, personas naturales o jurídicas.
+// ------------------------------------------------------------
+enum TipoIdentificacion {
+  NIT
+  CC
+  CE
+  PAS
+  OTRO
+}
+
+// ------------------------------------------------------------
+// Enum: categoría principal de un proveedor según lo que suministra
+// ------------------------------------------------------------
+enum TipoProveedor {
+  MATERIAL
+  SERVICIO
+  TRANSPORTE
+  MIXTO
+}
+
+// ------------------------------------------------------------
+// Enum: entidad del negocio sobre la que aplica un tipo de novedad
+// Controla el campo aplica_a en tipos_novedad sin texto libre.
+// ------------------------------------------------------------
+enum AplicaNovedadA {
+  PEDIDO
+  ORDEN_PRODUCCION
+  SUBORDEN
+  DESPACHO
+  COMPRA
+  MATERIAL
+  GENERAL
+}
+
+// ------------------------------------------------------------
+// TipoItem — catálogo de tipos de ítem que controlan el comportamiento
+// El campo comportamiento determina el tratamiento del ítem en el sistema.
+// No se usa esServicio en Item: se determina leyendo TipoItem.comportamiento.
+// ------------------------------------------------------------
+model TipoItem {
+  id             String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre         String                 @unique @db.VarChar(100)
+  descripcion    String?                @db.Text
+  comportamiento ComportamientoTipoItem
+  activo         Boolean                @default(true)
+  creadoEn       DateTime               @default(now()) @map("creado_en")
+  actualizadoEn  DateTime               @updatedAt @map("actualizado_en")
+
+  items Item[]
+
+  @@map("tipos_item")
+}
+
+// ------------------------------------------------------------
+// Item — catálogo maestro de ítems (productos, servicios, materias primas)
+// precioVentaReferencia y costoReferencia son referenciales, no de facturación.
+// controlaInventario: activa movimientos de stock para este ítem.
+// requiereCorte: indica que el ítem es procesado por maquinaria CNC.
+// metadata: atributos flexibles adicionales (color, textura, dimensiones, marca).
+// ------------------------------------------------------------
+model Item {
+  id                    String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tipoItemId            String       @map("tipo_item_id") @db.Uuid
+  codigo                String       @unique @db.VarChar(80)
+  nombre                String       @db.VarChar(200)
+  descripcion           String?      @db.Text
+  unidadMedida          UnidadMedida @map("unidad_medida")
+  precioVentaReferencia Decimal?     @map("precio_venta_referencia") @db.Decimal(14, 4)
+  costoReferencia       Decimal?     @map("costo_referencia") @db.Decimal(14, 4)
+  controlaInventario    Boolean      @default(false) @map("controla_inventario")
+  requiereCorte         Boolean      @default(false) @map("requiere_corte")
+  permiteFraccion       Boolean      @default(false) @map("permite_fraccion")
+  metadata              Json?        @db.JsonB
+  activo                Boolean      @default(true)
+  creadoEn              DateTime     @default(now()) @map("creado_en")
+  actualizadoEn         DateTime     @updatedAt @map("actualizado_en")
+
+  tipoItem TipoItem @relation(fields: [tipoItemId], references: [id], onDelete: Restrict)
+
+  @@index([codigo])
+  @@index([tipoItemId])
+  @@index([activo])
+  @@map("items")
+}
+
+// ------------------------------------------------------------
+// Cliente — personas naturales o empresas que realizan pedidos
+// La identificacion es única para prevenir duplicados en el sistema.
+// Un cliente puede tener múltiples contactos a través de contactos_cliente.
+// ------------------------------------------------------------
+model Cliente {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  razonSocial        String             @map("razon_social") @db.VarChar(200)
+  nombreComercial    String?            @map("nombre_comercial") @db.VarChar(200)
+  identificacion     String             @unique @db.VarChar(30)
+  tipoIdentificacion TipoIdentificacion @map("tipo_identificacion")
+  sedePrincipalId    String?            @map("sede_principal_id") @db.Uuid
+  telefono           String?            @db.VarChar(30)
+  correo             String?            @db.VarChar(150)
+  direccion          String?            @db.VarChar(255)
+  ciudad             String?            @db.VarChar(100)
+  activo             Boolean            @default(true)
+  creadoEn           DateTime           @default(now()) @map("creado_en")
+  actualizadoEn      DateTime           @updatedAt @map("actualizado_en")
+
+  sedePrincipal Sede?             @relation(fields: [sedePrincipalId], references: [id], onDelete: SetNull)
+  contactos     ContactoCliente[]
+
+  @@index([sedePrincipalId])
+  @@index([activo])
+  @@map("clientes")
+}
+
+// ------------------------------------------------------------
+// ContactoCliente — personas de contacto vinculadas a un cliente
+// esPrincipal identifica el contacto preferido para comunicaciones.
+// La eliminación del cliente propaga en cascada a sus contactos.
+// ------------------------------------------------------------
+model ContactoCliente {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clienteId     String   @map("cliente_id") @db.Uuid
+  nombre        String   @db.VarChar(150)
+  cargo         String?  @db.VarChar(100)
+  telefono      String?  @db.VarChar(30)
+  correo        String?  @db.VarChar(150)
+  esPrincipal   Boolean  @default(false) @map("es_principal")
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@index([clienteId])
+  @@map("contactos_cliente")
+}
+
+// ------------------------------------------------------------
+// Proveedor — empresas o personas que suministran materiales o servicios
+// La identificacion es única para prevenir duplicados en el sistema.
+// ------------------------------------------------------------
+model Proveedor {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  razonSocial        String             @map("razon_social") @db.VarChar(200)
+  nombreComercial    String?            @map("nombre_comercial") @db.VarChar(200)
+  identificacion     String             @unique @db.VarChar(30)
+  tipoIdentificacion TipoIdentificacion @map("tipo_identificacion")
+  tipoProveedor      TipoProveedor      @map("tipo_proveedor")
+  telefono           String?            @db.VarChar(30)
+  correo             String?            @db.VarChar(150)
+  direccion          String?            @db.VarChar(255)
+  ciudad             String?            @db.VarChar(100)
+  activo             Boolean            @default(true)
+  creadoEn           DateTime           @default(now()) @map("creado_en")
+  actualizadoEn      DateTime           @updatedAt @map("actualizado_en")
+
+  @@index([activo])
+  @@index([tipoProveedor])
+  @@map("proveedores")
+}
+
+// ------------------------------------------------------------
+// Maquina — equipos productivos registrados por sede
+// sedeId es obligatorio: toda máquina debe pertenecer a una sede física.
+// ------------------------------------------------------------
+model Maquina {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sedeId        String   @map("sede_id") @db.Uuid
+  nombre        String   @db.VarChar(150)
+  codigo        String   @unique @db.VarChar(50)
+  descripcion   String?  @db.Text
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  sede Sede @relation(fields: [sedeId], references: [id], onDelete: Restrict)
+
+  @@index([sedeId])
+  @@index([activo])
+  @@map("maquinas")
+}
+
+// ------------------------------------------------------------
+// Ubicacion — espacios físicos de almacenamiento o proceso por sede
+// Permite trazar la posición de materiales y productos en proceso.
+// sedeId es obligatorio: toda ubicación pertenece a una sede física.
+// ------------------------------------------------------------
+model Ubicacion {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sedeId        String   @map("sede_id") @db.Uuid
+  nombre        String   @db.VarChar(150)
+  codigo        String   @unique @db.VarChar(50)
+  descripcion   String?  @db.Text
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  sede Sede @relation(fields: [sedeId], references: [id], onDelete: Restrict)
+
+  @@index([sedeId])
+  @@index([activo])
+  @@map("ubicaciones")
+}
+
+// ------------------------------------------------------------
+// TipoNovedad — catálogo de tipos de novedad operativa
+// aplicaA define la entidad del sistema afectada, controlado por enum.
+// No se usa texto libre para garantizar integridad del catálogo.
+// ------------------------------------------------------------
+model TipoNovedad {
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre        String         @unique @db.VarChar(100)
+  descripcion   String?        @db.Text
+  aplicaA       AplicaNovedadA @map("aplica_a")
+  activo        Boolean        @default(true)
+  creadoEn      DateTime       @default(now()) @map("creado_en")
+  actualizadoEn DateTime       @updatedAt @map("actualizado_en")
+
+  @@index([aplicaA])
+  @@map("tipos_novedad")
+}
+
+// ------------------------------------------------------------
+// TipoDocumento — catálogo de tipos de documento del sistema
+// Ejemplos de uso: FACTURA, REMISION, ORDEN_COMPRA, COTIZACION, PLANO_CORTE
+// codigo es el identificador corto para referencias internas y reportes.
+// ------------------------------------------------------------
+model TipoDocumento {
+  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre                 String   @unique @db.VarChar(100)
+  codigo                 String   @unique @db.VarChar(30)
+  descripcion            String?  @db.Text
+  requiereVersionamiento Boolean  @default(false) @map("requiere_versionamiento")
+  activo                 Boolean  @default(true)
+  creadoEn               DateTime @default(now()) @map("creado_en")
+  actualizadoEn          DateTime @updatedAt @map("actualizado_en")
+
+  @@map("tipos_documento")
 }
