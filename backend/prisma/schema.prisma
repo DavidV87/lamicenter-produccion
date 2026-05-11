@@ -56,6 +56,8 @@ model Sede {
   maquinas            Maquina[]
   ubicaciones         Ubicacion[]
   clientesPrincipales Cliente[]
+  documentos          Documento[] @relation("DocumentoSede")
+  facturas            Factura[]   @relation("FacturaSede")
 
   @@map("sedes")
 }
@@ -93,9 +95,16 @@ model Usuario {
   actualizadoEn DateTime  @updatedAt @map("actualizado_en")
   ultimoAcceso  DateTime? @map("ultimo_acceso")
 
-  sede       Sede               @relation(fields: [sedeId], references: [id], onDelete: Restrict)
-  rol        Rol                @relation(fields: [rolId], references: [id], onDelete: Restrict)
-  auditorias AuditoriaGeneral[]
+  sede                   Sede                   @relation(fields: [sedeId], references: [id], onDelete: Restrict)
+  rol                    Rol                    @relation(fields: [rolId], references: [id], onDelete: Restrict)
+  auditorias             AuditoriaGeneral[]
+  documentosCreados      Documento[]            @relation("DocumentoCreadoPor")
+  versionesSubidas       DocumentoVersion[]     @relation("VersionSubidaPor")
+  facturasComoVendedor   Factura[]              @relation("FacturaVendedor")
+  facturasCreadas        Factura[]              @relation("FacturaCreadaPor")
+  itemsMapeados          FacturaItem[]          @relation("ItemMapeadoPor")
+  documentosRelacionados DocumentoRelacionado[] @relation("DocumentoRelacionadoPor")
+  lecturasDocumento      LecturaDocumento[]     @relation("LecturaProcesadaPor")
 
   @@index([sedeId])
   @@index([rolId])
@@ -342,7 +351,8 @@ model Item {
   creadoEn              DateTime     @default(now()) @map("creado_en")
   actualizadoEn         DateTime     @updatedAt @map("actualizado_en")
 
-  tipoItem TipoItem @relation(fields: [tipoItemId], references: [id], onDelete: Restrict)
+  tipoItem     TipoItem      @relation(fields: [tipoItemId], references: [id], onDelete: Restrict)
+  facturaItems FacturaItem[]
 
   @@index([codigo])
   @@index([tipoItemId])
@@ -372,6 +382,7 @@ model Cliente {
 
   sedePrincipal Sede?             @relation(fields: [sedePrincipalId], references: [id], onDelete: SetNull)
   contactos     ContactoCliente[]
+  facturas      Factura[]         @relation("FacturaCliente")
 
   @@index([sedePrincipalId])
   @@index([activo])
@@ -501,5 +512,312 @@ model TipoDocumento {
   creadoEn               DateTime @default(now()) @map("creado_en")
   actualizadoEn          DateTime @updatedAt @map("actualizado_en")
 
+  documentos Documento[]
+
   @@map("tipos_documento")
+}
+
+// =============================================================
+// BLOQUE 3 — Documentos, Facturas y Versionamiento
+// =============================================================
+
+// ------------------------------------------------------------
+// Enum: estado de mapeo de un ítem de factura hacia el catálogo interno
+// PENDIENTE: aún no procesado.
+// MAPEADO_AUTOMATICO: el parser identificó y asoció el ítem automáticamente.
+// MAPEADO_MANUAL: un usuario asoció el ítem manualmente desde la interfaz.
+// REQUIERE_REVISION: el parser dudó; necesita confirmación humana antes de continuar.
+// IGNORADO: el ítem no aplica para producción (descuento, flete, impuesto extra).
+// ------------------------------------------------------------
+enum EstadoMapeo {
+  PENDIENTE
+  MAPEADO_AUTOMATICO
+  MAPEADO_MANUAL
+  REQUIERE_REVISION
+  IGNORADO
+}
+
+// ------------------------------------------------------------
+// Enum: modalidad de pago registrada en la factura comercial
+// ------------------------------------------------------------
+enum TipoPago {
+  CONTADO
+  CREDITO
+  CHEQUE
+  TRANSFERENCIA
+  MIXTO
+}
+
+// ------------------------------------------------------------
+// Enum: estado de cobro de la factura
+// VENCIDO: crédito superó la fecha de vencimiento sin pago total.
+// ------------------------------------------------------------
+enum EstadoPago {
+  PENDIENTE
+  PARCIAL
+  PAGADO
+  VENCIDO
+  ANULADO
+}
+
+// ------------------------------------------------------------
+// Enum: estado operativo de la factura dentro del sistema
+// BLOQUEADA: factura anulada en ContaPyme; requiere revisión del administrador de punto.
+// REEMPLAZADA: sustituida por otra factura dentro del mismo pedido.
+// ------------------------------------------------------------
+enum EstadoFactura {
+  ACTIVA
+  PENDIENTE_REVISION
+  BLOQUEADA
+  ANULADA
+  REEMPLAZADA
+}
+
+// ------------------------------------------------------------
+// Enum: tipo de relación semántica entre dos documentos
+// Permite trazar vínculos: factura↔plano, factura↔nota crédito, reemplazo, etc.
+// ------------------------------------------------------------
+enum TipoRelacionDocumento {
+  FACTURA_PLANO
+  NOTA_CREDITO
+  VERSION
+  COMPLEMENTO
+  REEMPLAZO
+  ANULACION
+  REFERENCIA
+}
+
+// ------------------------------------------------------------
+// Enum: estado del ciclo de vida del proceso de lectura/parsing de una versión
+// REVISION_MANUAL: el parser no pudo completar la lectura; requiere intervención humana.
+// ------------------------------------------------------------
+enum EstadoLecturaDocumento {
+  PENDIENTE
+  EN_PROCESO
+  EXITOSA
+  FALLIDA
+  REVISION_MANUAL
+}
+
+// ------------------------------------------------------------
+// Enum: servicio o método que procesó la lectura del documento
+// OCR_CONTPYME: lectura automática de facturas exportadas desde ContaPyme.
+// PARSER_CUTLIST: parsing automático de planos CutList.
+// IMPORTADOR_MANUAL: carga realizada directamente por un usuario desde la interfaz.
+// ------------------------------------------------------------
+enum ServicioLectura {
+  OCR_CONTPYME
+  PARSER_CUTLIST
+  IMPORTADOR_MANUAL
+}
+
+// ------------------------------------------------------------
+// Documento — contenedor lógico que agrupa versiones de un archivo
+// Puede representar: factura, plano CutList, nota crédito, remisión, cotización, etc.
+// No almacena archivos físicos: los archivos van en documentos_versiones (inmutables).
+// tipoDocumentoId clasifica el documento según el catálogo tipos_documento del bloque 2.
+// activo: soft delete; los documentos críticos no se eliminan físicamente.
+// metadata: campos adicionales flexibles según el tipo de documento.
+// ------------------------------------------------------------
+model Documento {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tipoDocumentoId    String   @map("tipo_documento_id") @db.Uuid
+  titulo             String   @db.VarChar(200)
+  descripcion        String?  @db.Text
+  sedeId             String?  @map("sede_id") @db.Uuid
+  creadoPorUsuarioId String   @map("creado_por_usuario_id") @db.Uuid
+  activo             Boolean  @default(true)
+  metadata           Json?    @db.JsonB
+  creadoEn           DateTime @default(now()) @map("creado_en")
+  actualizadoEn      DateTime @updatedAt @map("actualizado_en")
+
+  tipoDocumento     TipoDocumento          @relation(fields: [tipoDocumentoId], references: [id], onDelete: Restrict)
+  sede              Sede?                  @relation("DocumentoSede", fields: [sedeId], references: [id], onDelete: SetNull)
+  creadoPor         Usuario                @relation("DocumentoCreadoPor", fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
+  versiones         DocumentoVersion[]
+  factura           Factura?
+  relacionesOrigen  DocumentoRelacionado[] @relation("DocumentoOrigen")
+  relacionesDestino DocumentoRelacionado[] @relation("DocumentoDestino")
+
+  @@index([tipoDocumentoId])
+  @@index([sedeId])
+  @@index([creadoPorUsuarioId])
+  @@index([activo])
+  @@map("documentos")
+}
+
+// ------------------------------------------------------------
+// DocumentoVersion — versión inmutable de un archivo físico asociado a un documento
+// Cada carga genera una nueva versión; nunca se reemplaza ni elimina la versión anterior.
+// version: entero incremental por documento (1, 2, 3...); único por documento.
+// hashArchivo: sha256/md5 opcional para verificar integridad y detectar duplicados.
+// rutaArchivo: ruta de almacenamiento interno; no es URL pública directa.
+// pesoBytes: BigInt para soportar archivos de hasta varios GB sin desbordamiento.
+// No tiene actualizadoEn: la inmutabilidad garantiza que el registro no cambia.
+// ------------------------------------------------------------
+model DocumentoVersion {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  documentoId        String   @map("documento_id") @db.Uuid
+  version            Int
+  rutaArchivo        String   @map("ruta_archivo") @db.VarChar(500)
+  nombreOriginal     String   @map("nombre_original") @db.VarChar(255)
+  extension          String   @db.VarChar(20)
+  mimeType           String   @map("mime_type") @db.VarChar(100)
+  pesoBytes          BigInt   @map("peso_bytes")
+  hashArchivo        String?  @map("hash_archivo") @db.VarChar(128)
+  subidoPorUsuarioId String   @map("subido_por_usuario_id") @db.Uuid
+  creadoEn           DateTime @default(now()) @map("creado_en")
+
+  documento Documento          @relation(fields: [documentoId], references: [id], onDelete: Restrict)
+  subidoPor Usuario            @relation("VersionSubidaPor", fields: [subidoPorUsuarioId], references: [id], onDelete: Restrict)
+  lecturas  LecturaDocumento[]
+
+  @@unique([documentoId, version])
+  @@index([documentoId])
+  @@index([subidoPorUsuarioId])
+  @@map("documentos_versiones")
+}
+
+// ------------------------------------------------------------
+// Factura — factura comercial leída desde ContaPyme o importada como PDF
+// documentoId es unique: cada factura corresponde a un único documento lógico.
+// vendedorId es nullable: puede no conocerse en facturas históricas importadas.
+// creadoPorUsuarioId: auditoría de quién registró la factura en el sistema.
+// saldoPendiente: se actualiza cuando se registran abonos (total − suma de abonos).
+// estadoFactura BLOQUEADA: anulación en ContaPyme obliga revisión antes de continuar producción.
+// metadata: preserva campos adicionales del sistema ContaPyme u otras fuentes externas.
+// Si el parser falla, el operador puede completar o corregir todos los campos manualmente.
+// ------------------------------------------------------------
+model Factura {
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  documentoId        String        @unique @map("documento_id") @db.Uuid
+  sedeId             String        @map("sede_id") @db.Uuid
+  clienteId          String        @map("cliente_id") @db.Uuid
+  vendedorId         String?       @map("vendedor_id") @db.Uuid
+  creadoPorUsuarioId String?       @map("creado_por_usuario_id") @db.Uuid
+  numeroFactura      String        @unique @map("numero_factura") @db.VarChar(50)
+  fechaFactura       DateTime      @map("fecha_factura") @db.Date
+  tipoPago           TipoPago      @map("tipo_pago")
+  estadoPago         EstadoPago    @default(PENDIENTE) @map("estado_pago")
+  estadoFactura      EstadoFactura @default(ACTIVA) @map("estado_factura")
+  subtotal           Decimal       @db.Decimal(16, 4)
+  impuestos          Decimal       @db.Decimal(16, 4)
+  total              Decimal       @db.Decimal(16, 4)
+  saldoPendiente     Decimal       @map("saldo_pendiente") @db.Decimal(16, 4)
+  // Origen del saldo pendiente: CONTAPYME (sincronizado), MANUAL (ingresado por usuario), CALCULADO (derivado de abonos registrados)
+  fuenteSaldo        String?       @map("fuente_saldo") @db.VarChar(50)
+  metadata           Json?         @db.JsonB
+  creadoEn           DateTime      @default(now()) @map("creado_en")
+  actualizadoEn      DateTime      @updatedAt @map("actualizado_en")
+
+  documento Documento     @relation(fields: [documentoId], references: [id], onDelete: Restrict)
+  sede      Sede          @relation("FacturaSede", fields: [sedeId], references: [id], onDelete: Restrict)
+  cliente   Cliente       @relation("FacturaCliente", fields: [clienteId], references: [id], onDelete: Restrict)
+  vendedor  Usuario?      @relation("FacturaVendedor", fields: [vendedorId], references: [id], onDelete: SetNull)
+  creadoPor Usuario?      @relation("FacturaCreadaPor", fields: [creadoPorUsuarioId], references: [id], onDelete: SetNull)
+  items     FacturaItem[]
+
+  @@index([sedeId])
+  @@index([clienteId])
+  @@index([vendedorId])
+  @@index([estadoFactura])
+  @@index([estadoPago])
+  @@index([fechaFactura])
+  @@map("facturas")
+}
+
+// ------------------------------------------------------------
+// FacturaItem — línea de detalle de una factura
+// descripcionOriginal: texto tal como viene del PDF o ContaPyme, sin modificar.
+// itemId es nullable: el ítem puede no existir en catálogo aún (estadoMapeo PENDIENTE).
+// codigoOriginal / unidadOriginal: valores crudos del documento fuente para trazabilidad.
+// estadoMapeo controla el flujo de asociación entre el texto original y el catálogo de ítems.
+// mapeadoPorUsuarioId + fechaMapeo: trazabilidad completa del proceso de mapeo.
+// IGNORADO: ítems no aplicables a producción (descuentos, fletes, impuestos adicionales).
+// El operador puede continuar operación sin bloquear producción aunque haya ítems PENDIENTE.
+// ------------------------------------------------------------
+model FacturaItem {
+  id                  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  facturaId           String      @map("factura_id") @db.Uuid
+  itemId              String?     @map("item_id") @db.Uuid
+  descripcionOriginal String      @map("descripcion_original") @db.VarChar(500)
+  codigoOriginal      String?     @map("codigo_original") @db.VarChar(100)
+  unidadOriginal      String?     @map("unidad_original") @db.VarChar(50)
+  cantidad            Decimal     @db.Decimal(14, 4)
+  precioUnitario      Decimal     @map("precio_unitario") @db.Decimal(14, 4)
+  subtotal            Decimal     @db.Decimal(14, 4)
+  estadoMapeo         EstadoMapeo @default(PENDIENTE) @map("estado_mapeo")
+  mapeadoPorUsuarioId String?     @map("mapeado_por_usuario_id") @db.Uuid
+  fechaMapeo          DateTime?   @map("fecha_mapeo")
+  observaciones       String?     @db.Text
+  creadoEn            DateTime    @default(now()) @map("creado_en")
+  actualizadoEn       DateTime    @updatedAt @map("actualizado_en")
+
+  factura    Factura  @relation(fields: [facturaId], references: [id], onDelete: Cascade)
+  item       Item?    @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  mapeadoPor Usuario? @relation("ItemMapeadoPor", fields: [mapeadoPorUsuarioId], references: [id], onDelete: SetNull)
+
+  @@index([facturaId])
+  @@index([itemId])
+  @@index([estadoMapeo])
+  @@index([mapeadoPorUsuarioId])
+  @@map("factura_items")
+}
+
+// ------------------------------------------------------------
+// DocumentoRelacionado — vínculo explícito entre dos documentos
+// Permite trazar relaciones semánticas: factura↔plano, factura↔nota crédito, etc.
+// El único en [origen, destino, tipoRelacion] previene relaciones duplicadas del mismo tipo.
+// documentoOrigenId ≠ documentoDestinoId: validar en backend que no se relacione consigo mismo.
+// ------------------------------------------------------------
+model DocumentoRelacionado {
+  id                      String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  documentoOrigenId       String                @map("documento_origen_id") @db.Uuid
+  documentoDestinoId      String                @map("documento_destino_id") @db.Uuid
+  tipoRelacion            TipoRelacionDocumento @map("tipo_relacion")
+  relacionadoPorUsuarioId String?               @map("relacionado_por_usuario_id") @db.Uuid
+  observaciones           String?               @db.Text
+  creadoEn                DateTime              @default(now()) @map("creado_en")
+
+  documentoOrigen  Documento @relation("DocumentoOrigen", fields: [documentoOrigenId], references: [id], onDelete: Restrict)
+  documentoDestino Documento @relation("DocumentoDestino", fields: [documentoDestinoId], references: [id], onDelete: Restrict)
+  relacionadoPor   Usuario?  @relation("DocumentoRelacionadoPor", fields: [relacionadoPorUsuarioId], references: [id], onDelete: SetNull)
+
+  @@unique([documentoOrigenId, documentoDestinoId, tipoRelacion])
+  @@index([documentoOrigenId])
+  @@index([documentoDestinoId])
+  @@map("documentos_relacionados")
+}
+
+// ------------------------------------------------------------
+// LecturaDocumento — registro de cada intento de procesamiento automático o manual de una versión
+// Separa el procesador humano (procesadoPorUsuarioId) del servicio automático (procesadoPorServicio).
+// Solo uno debe estar activo por lectura; validar en backend que no coexistan ambos.
+// resultadoLectura: estructura JSON extraída por el parser (campos de factura, ítems de plano, etc.).
+// intentos: contador de reintentos automáticos antes de escalar a REVISION_MANUAL.
+// errorDetalle: texto del error si el procesamiento falló; facilita diagnóstico y soporte.
+// El fallback manual está siempre disponible; la operación no se bloquea por fallo del parser.
+// ------------------------------------------------------------
+model LecturaDocumento {
+  id                    String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  documentoVersionId    String                 @map("documento_version_id") @db.Uuid
+  estadoLectura         EstadoLecturaDocumento @default(PENDIENTE) @map("estado_lectura")
+  procesadoPorUsuarioId String?                @map("procesado_por_usuario_id") @db.Uuid
+  procesadoPorServicio  ServicioLectura?       @map("procesado_por_servicio")
+  resultadoLectura      Json?                  @map("resultado_lectura") @db.JsonB
+  errorDetalle          String?                @map("error_detalle") @db.Text
+  intentos              Int                    @default(0)
+  fechaInicio           DateTime?              @map("fecha_inicio")
+  fechaFin              DateTime?              @map("fecha_fin")
+  metadata              Json?                  @db.JsonB
+  creadoEn              DateTime               @default(now()) @map("creado_en")
+  actualizadoEn         DateTime               @updatedAt @map("actualizado_en")
+
+  documentoVersion    DocumentoVersion @relation(fields: [documentoVersionId], references: [id], onDelete: Restrict)
+  procesadoPorUsuario Usuario?         @relation("LecturaProcesadaPor", fields: [procesadoPorUsuarioId], references: [id], onDelete: SetNull)
+
+  @@index([documentoVersionId])
+  @@index([estadoLectura])
+  @@index([procesadoPorUsuarioId])
+  @@map("lectura_documentos")
 }
