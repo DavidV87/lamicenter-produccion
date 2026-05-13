@@ -56,29 +56,33 @@ model Sede {
   maquinas                        Maquina[]
   ubicaciones                     Ubicacion[]
   clientesPrincipales             Cliente[]
-  documentos                      Documento[]             @relation("DocumentoSede")
-  facturas                        Factura[]               @relation("FacturaSede")
-  pedidosComoVenta                Pedido[]                @relation("PedidoSedeVenta")
-  pedidosComoResponsable          Pedido[]                @relation("PedidoSedeResponsable")
-  pedidosComoDespacho             Pedido[]                @relation("PedidoSedeDespacho")
-  pedidoSedesOrigen               PedidoSede[]            @relation("PedidoSedeOrigen")
-  pedidoSedesDestino              PedidoSede[]            @relation("PedidoSedeDestino")
-  ordenesProduccionComoProduccion OrdenProduccion[]       @relation("OrdenSedeProduccion")
-  ordenesProduccionComoDespacho   OrdenProduccion[]       @relation("OrdenSedeDespacho")
-  ordenesProduccionComoActual     OrdenProduccion[]       @relation("OrdenSedeActual")
-  subordenesComoProduccion        Suborden[]              @relation("SubordenSedeProduccion")
-  subordenesComoDespacho          Suborden[]              @relation("SubordenSedeDespacho")
+  documentos                      Documento[]                @relation("DocumentoSede")
+  facturas                        Factura[]                  @relation("FacturaSede")
+  pedidosComoVenta                Pedido[]                   @relation("PedidoSedeVenta")
+  pedidosComoResponsable          Pedido[]                   @relation("PedidoSedeResponsable")
+  pedidosComoDespacho             Pedido[]                   @relation("PedidoSedeDespacho")
+  pedidoSedesOrigen               PedidoSede[]               @relation("PedidoSedeOrigen")
+  pedidoSedesDestino              PedidoSede[]               @relation("PedidoSedeDestino")
+  ordenesProduccionComoProduccion OrdenProduccion[]          @relation("OrdenSedeProduccion")
+  ordenesProduccionComoDespacho   OrdenProduccion[]          @relation("OrdenSedeDespacho")
+  ordenesProduccionComoActual     OrdenProduccion[]          @relation("OrdenSedeActual")
+  subordenesComoProduccion        Suborden[]                 @relation("SubordenSedeProduccion")
+  subordenesComoDespacho          Suborden[]                 @relation("SubordenSedeDespacho")
   // Bloque 6 — Abastecimiento
   requerimientosMaterial          RequerimientoMaterial[]
   solicitudesCompra               SolicitudCompra[]
   comprasMaterial                 CompraMaterial[]
   recepcionesMaterial             RecepcionMaterial[]
-  trasladosMaterialComoOrigen     TrasladoMaterial[]      @relation("TrasladoSedeOrigen")
-  trasladosMaterialComoDestino    TrasladoMaterial[]      @relation("TrasladoSedeDestino")
+  trasladosMaterialComoOrigen     TrasladoMaterial[]         @relation("TrasladoSedeOrigen")
+  trasladosMaterialComoDestino    TrasladoMaterial[]         @relation("TrasladoSedeDestino")
   movimientosMaterial             MovimientoMaterial[]
   materialesReservados            MaterialReservado[]
   abastecimientoAlertas           AbastecimientoAlerta[]
   inventariosOperativos           InventarioOperativo[]
+  // Bloque 7 — Despacho
+  despachos                       Despacho[]
+  ubicacionesPedido               UbicacionPedido[]
+  historialUbicacionesPedido      HistorialUbicacionPedido[]
 
   @@map("sedes")
 }
@@ -116,56 +120,65 @@ model Usuario {
   actualizadoEn DateTime  @updatedAt @map("actualizado_en")
   ultimoAcceso  DateTime? @map("ultimo_acceso")
 
-  sede                            Sede                      @relation(fields: [sedeId], references: [id], onDelete: Restrict)
-  rol                             Rol                       @relation(fields: [rolId], references: [id], onDelete: Restrict)
-  auditorias                      AuditoriaGeneral[]
-  documentosCreados               Documento[]               @relation("DocumentoCreadoPor")
-  versionesSubidas                DocumentoVersion[]        @relation("VersionSubidaPor")
-  facturasComoVendedor            Factura[]                 @relation("FacturaVendedor")
-  facturasCreadas                 Factura[]                 @relation("FacturaCreadaPor")
-  itemsMapeados                   FacturaItem[]             @relation("ItemMapeadoPor")
-  documentosRelacionados          DocumentoRelacionado[]    @relation("DocumentoRelacionadoPor")
-  lecturasDocumento               LecturaDocumento[]        @relation("LecturaProcesadaPor")
-  pedidosComoVendedor             Pedido[]                  @relation("PedidoVendedor")
-  pedidosCreados                  Pedido[]                  @relation("PedidoCreadoPor")
-  validacionesPedido              ValidacionPedido[]
-  asignacionesComoVendedor        AsignacionPedido[]        @relation("AsignacionVendedor")
-  asignacionesRealizadas          AsignacionPedido[]        @relation("AsignacionRealizadaPor")
-  materialesClienteRecibidos      MaterialCliente[]         @relation("MaterialClienteRecibidoPor")
-  materialesClienteCreados        MaterialCliente[]         @relation("MaterialClienteCreadoPor")
-  bloqueosPedidoCreados           BloqueoPedido[]           @relation("BloqueoPedidoCreadoPor")
-  bloqueosPedidoDesbloqueados     BloqueoPedido[]           @relation("BloqueoPedidoDesbloqueadoPor")
-  pedidoSedesSolicitadas          PedidoSede[]              @relation("PedidoSedeSolicitadaPor")
-  pedidoSedesAutorizadas          PedidoSede[]              @relation("PedidoSedeAutorizadaPor")
-  historialEstadosPedido          HistorialEstadoPedido[]
-  entregasRealizadas              Entrega[]
-  facturasPedidoRelacionadas      FacturaPedido[]
-  pedidoItemDocumentosCreados     PedidoItemDocumento[]
-  ordenesProduccionCreadas        OrdenProduccion[]         @relation("OrdenProduccionCreadaPor")
-  subordenesCreadas               Suborden[]                @relation("SubordenCreadaPor")
-  asignacionesOrdenComoOperador   OrdenAsignacion[]         @relation("OrdenAsignacionOperador")
-  asignacionesOrdenRealizadas     OrdenAsignacion[]         @relation("OrdenAsignacionRealizadaPor")
-  eventosOperativos               EventoOperativo[]
-  novedadesReportadas             NovedadOperativa[]
-  reprocesosAutorizados           Reproceso[]               @relation("ReprocesoAutorizadoPor")
-  reprocesosCreados               Reproceso[]               @relation("ReprocesoCreadoPor")
-  historialEstadosOrden           HistorialEstadoOrden[]
-  historialEstadosSuborden        HistorialEstadoSuborden[]
-  calculoPerdidasAutorizados      CalculoPerdidas[]
+  sede                                  Sede                       @relation(fields: [sedeId], references: [id], onDelete: Restrict)
+  rol                                   Rol                        @relation(fields: [rolId], references: [id], onDelete: Restrict)
+  auditorias                            AuditoriaGeneral[]
+  documentosCreados                     Documento[]                @relation("DocumentoCreadoPor")
+  versionesSubidas                      DocumentoVersion[]         @relation("VersionSubidaPor")
+  facturasComoVendedor                  Factura[]                  @relation("FacturaVendedor")
+  facturasCreadas                       Factura[]                  @relation("FacturaCreadaPor")
+  itemsMapeados                         FacturaItem[]              @relation("ItemMapeadoPor")
+  documentosRelacionados                DocumentoRelacionado[]     @relation("DocumentoRelacionadoPor")
+  lecturasDocumento                     LecturaDocumento[]         @relation("LecturaProcesadaPor")
+  pedidosComoVendedor                   Pedido[]                   @relation("PedidoVendedor")
+  pedidosCreados                        Pedido[]                   @relation("PedidoCreadoPor")
+  validacionesPedido                    ValidacionPedido[]
+  asignacionesComoVendedor              AsignacionPedido[]         @relation("AsignacionVendedor")
+  asignacionesRealizadas                AsignacionPedido[]         @relation("AsignacionRealizadaPor")
+  materialesClienteRecibidos            MaterialCliente[]          @relation("MaterialClienteRecibidoPor")
+  materialesClienteCreados              MaterialCliente[]          @relation("MaterialClienteCreadoPor")
+  bloqueosPedidoCreados                 BloqueoPedido[]            @relation("BloqueoPedidoCreadoPor")
+  bloqueosPedidoDesbloqueados           BloqueoPedido[]            @relation("BloqueoPedidoDesbloqueadoPor")
+  pedidoSedesSolicitadas                PedidoSede[]               @relation("PedidoSedeSolicitadaPor")
+  pedidoSedesAutorizadas                PedidoSede[]               @relation("PedidoSedeAutorizadaPor")
+  historialEstadosPedido                HistorialEstadoPedido[]
+  entregasRealizadas                    Entrega[]
+  facturasPedidoRelacionadas            FacturaPedido[]
+  pedidoItemDocumentosCreados           PedidoItemDocumento[]
+  ordenesProduccionCreadas              OrdenProduccion[]          @relation("OrdenProduccionCreadaPor")
+  subordenesCreadas                     Suborden[]                 @relation("SubordenCreadaPor")
+  asignacionesOrdenComoOperador         OrdenAsignacion[]          @relation("OrdenAsignacionOperador")
+  asignacionesOrdenRealizadas           OrdenAsignacion[]          @relation("OrdenAsignacionRealizadaPor")
+  eventosOperativos                     EventoOperativo[]
+  novedadesReportadas                   NovedadOperativa[]
+  reprocesosAutorizados                 Reproceso[]                @relation("ReprocesoAutorizadoPor")
+  reprocesosCreados                     Reproceso[]                @relation("ReprocesoCreadoPor")
+  historialEstadosOrden                 HistorialEstadoOrden[]
+  historialEstadosSuborden              HistorialEstadoSuborden[]
+  calculoPerdidasAutorizados            CalculoPerdidas[]
   // Bloque 6 — Abastecimiento
-  requerimientosMaterialCreados   RequerimientoMaterial[]   @relation("RequerimientoMaterialCreadoPor")
-  requerimientosMaterialAtendidos RequerimientoMaterial[]   @relation("RequerimientoMaterialAtendidoPor")
-  solicitudesCompraCreadas        SolicitudCompra[]         @relation("SolicitudCompraCreadaPor")
-  solicitudesCompraAutorizadas    SolicitudCompra[]         @relation("SolicitudCompraAutorizadaPor")
-  comprasMaterialCreadas          CompraMaterial[]          @relation("CompraMaterialCreadaPor")
-  comprasMaterialAutorizadas      CompraMaterial[]          @relation("CompraMaterialAutorizadaPor")
-  recepcionesRealizadas           RecepcionMaterial[]
-  trasladosMaterialSolicitados    TrasladoMaterial[]        @relation("TrasladoMaterialSolicitadoPor")
-  trasladosMaterialAutorizados    TrasladoMaterial[]        @relation("TrasladoMaterialAutorizadoPor")
-  movimientosMaterial             MovimientoMaterial[]
-  materialesReservados            MaterialReservado[]
-  abastecimientoAlertasCreadas    AbastecimientoAlerta[]    @relation("AbastecimientoAlertaCreadaPor")
-  abastecimientoAlertasCerradas   AbastecimientoAlerta[]    @relation("AbastecimientoAlertaCerradaPor")
+  requerimientosMaterialCreados         RequerimientoMaterial[]    @relation("RequerimientoMaterialCreadoPor")
+  requerimientosMaterialAtendidos       RequerimientoMaterial[]    @relation("RequerimientoMaterialAtendidoPor")
+  solicitudesCompraCreadas              SolicitudCompra[]          @relation("SolicitudCompraCreadaPor")
+  solicitudesCompraAutorizadas          SolicitudCompra[]          @relation("SolicitudCompraAutorizadaPor")
+  comprasMaterialCreadas                CompraMaterial[]           @relation("CompraMaterialCreadaPor")
+  comprasMaterialAutorizadas            CompraMaterial[]           @relation("CompraMaterialAutorizadaPor")
+  recepcionesRealizadas                 RecepcionMaterial[]
+  trasladosMaterialSolicitados          TrasladoMaterial[]         @relation("TrasladoMaterialSolicitadoPor")
+  trasladosMaterialAutorizados          TrasladoMaterial[]         @relation("TrasladoMaterialAutorizadoPor")
+  movimientosMaterial                   MovimientoMaterial[]
+  materialesReservados                  MaterialReservado[]
+  abastecimientoAlertasCreadas          AbastecimientoAlerta[]     @relation("AbastecimientoAlertaCreadaPor")
+  abastecimientoAlertasCerradas         AbastecimientoAlerta[]     @relation("AbastecimientoAlertaCerradaPor")
+  // Bloque 7 — Despacho
+  despachosCreados                      Despacho[]                 @relation("DespachoCreadoPor")
+  despachosComoEncargado                Despacho[]                 @relation("DespachoEncargadoPor")
+  despachosAutorizados                  Despacho[]                 @relation("DespachoAutorizadoPor")
+  despachoAutorizaciones                DespachoAutorizacion[]
+  checklistsDespachosCompletados        ChecklistDespacho[]
+  ubicacionesPedidoActualizadas         UbicacionPedido[]
+  historialUbicacionesPedidoRegistradas HistorialUbicacionPedido[]
+  evidenciasDespacho                    EvidenciaDespacho[]
 
   @@index([sedeId])
   @@index([rolId])
@@ -272,6 +285,8 @@ model EstadoSistema {
   comprasMaterial             CompraMaterial[]          @relation("CompraEstado")
   recepcionesMaterial         RecepcionMaterial[]       @relation("RecepcionEstado")
   trasladosMaterial           TrasladoMaterial[]        @relation("TrasladoEstado")
+  // Bloque 7 — Despacho
+  despachos                   Despacho[]                @relation("DespachoEstado")
 
   @@unique([modulo, codigo])
   @@index([modulo])
@@ -570,13 +585,16 @@ model Ubicacion {
   creadoEn      DateTime @default(now()) @map("creado_en")
   actualizadoEn DateTime @updatedAt @map("actualizado_en")
 
-  sede                  Sede                    @relation(fields: [sedeId], references: [id], onDelete: Restrict)
+  sede                       Sede                       @relation(fields: [sedeId], references: [id], onDelete: Restrict)
   // Bloque 6 — Abastecimiento
-  recepcionItems        RecepcionItemMaterial[]
-  trasladoItems         TrasladoItemMaterial[]
-  movimientosMaterial   MovimientoMaterial[]
-  materialesReservados  MaterialReservado[]
-  inventariosOperativos InventarioOperativo[]
+  recepcionItems             RecepcionItemMaterial[]
+  trasladoItems              TrasladoItemMaterial[]
+  movimientosMaterial        MovimientoMaterial[]
+  materialesReservados       MaterialReservado[]
+  inventariosOperativos      InventarioOperativo[]
+  // Bloque 7 — Despacho
+  ubicacionesPedido          UbicacionPedido[]
+  historialUbicacionesPedido HistorialUbicacionPedido[]
 
   @@index([sedeId])
   @@index([activo])
@@ -1049,13 +1067,13 @@ model Pedido {
   creadoEn              DateTime  @default(now()) @map("creado_en")
   actualizadoEn         DateTime  @updatedAt @map("actualizado_en")
 
-  sedeVenta              Sede                    @relation("PedidoSedeVenta", fields: [sedeVentaId], references: [id], onDelete: Restrict)
-  sedeResponsable        Sede                    @relation("PedidoSedeResponsable", fields: [sedeResponsableId], references: [id], onDelete: Restrict)
-  sedeDespacho           Sede?                   @relation("PedidoSedeDespacho", fields: [sedeDespachoId], references: [id], onDelete: SetNull)
-  cliente                Cliente                 @relation(fields: [clienteId], references: [id], onDelete: Restrict)
-  vendedor               Usuario?                @relation("PedidoVendedor", fields: [vendedorId], references: [id], onDelete: SetNull)
-  creadoPor              Usuario                 @relation("PedidoCreadoPor", fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
-  estadoPedido           EstadoSistema           @relation("PedidoEstado", fields: [estadoPedidoId], references: [id], onDelete: Restrict)
+  sedeVenta              Sede                       @relation("PedidoSedeVenta", fields: [sedeVentaId], references: [id], onDelete: Restrict)
+  sedeResponsable        Sede                       @relation("PedidoSedeResponsable", fields: [sedeResponsableId], references: [id], onDelete: Restrict)
+  sedeDespacho           Sede?                      @relation("PedidoSedeDespacho", fields: [sedeDespachoId], references: [id], onDelete: SetNull)
+  cliente                Cliente                    @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  vendedor               Usuario?                   @relation("PedidoVendedor", fields: [vendedorId], references: [id], onDelete: SetNull)
+  creadoPor              Usuario                    @relation("PedidoCreadoPor", fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
+  estadoPedido           EstadoSistema              @relation("PedidoEstado", fields: [estadoPedidoId], references: [id], onDelete: Restrict)
   items                  PedidoItem[]
   materialesCliente      MaterialCliente[]
   validaciones           ValidacionPedido[]
@@ -1067,11 +1085,15 @@ model Pedido {
   facturasPedido         FacturaPedido[]
   ordenesProduccion      OrdenProduccion[]
   subordenes             Suborden[]
-  reprocesosComoOrigen   Reproceso[]             @relation("ReprocesoOrigenPedido")
+  reprocesosComoOrigen   Reproceso[]                @relation("ReprocesoOrigenPedido")
   // Bloque 6 — Abastecimiento
   movimientosMaterial    MovimientoMaterial[]
   materialesReservados   MaterialReservado[]
   requerimientosMaterial RequerimientoMaterial[]
+  // Bloque 7 — Despacho
+  despachos              Despacho[]
+  ubicacionActual        UbicacionPedido?
+  historialUbicaciones   HistorialUbicacionPedido[]
 
   @@index([sedeVentaId])
   @@index([sedeResponsableId])
@@ -1116,6 +1138,8 @@ model PedidoItem {
   documentos        PedidoItemDocumento[]
   entregaItems      EntregaItem[]
   materialesCliente MaterialCliente[]
+  // Bloque 7 — Despacho
+  despachoItems     DespachoItem[]
 
   @@index([pedidoId])
   @@index([itemId])
@@ -2460,4 +2484,274 @@ model InventarioOperativo {
   @@index([itemId])
   @@index([sedeId])
   @@map("inventario_operativo")
+}
+
+// =============================================================
+// BLOQUE 7 — Despacho, Checklist, Ubicación y Evidencias
+// =============================================================
+
+// ------------------------------------------------------------
+// Enum: tipo de evidencia adjunta a un despacho
+// Tipo operativo cerrado; no requiere configuración dinámica.
+// FOTO / VIDEO: evidencia visual del estado del producto al despachar.
+// DOCUMENTO: soporte escrito (remisión, autorización, guía de transporte).
+// FIRMA: firma digital o foto de firma del receptor.
+// OBSERVACION: nota operativa sin archivo adjunto.
+// ------------------------------------------------------------
+enum TipoEvidenciaDespacho {
+  FOTO
+  VIDEO
+  DOCUMENTO
+  FIRMA
+  OBSERVACION
+}
+
+// ------------------------------------------------------------
+// TipoValidacionDespacho — catálogo configurable de tipos de validación para checklist
+// Tabla configurable: gerencia puede agregar, activar o desactivar validaciones sin migración.
+// ordenVisual: define el orden de presentación en la interfaz del checklist.
+// metadata: permite adjuntar parámetros de configuración adicionales por tipo.
+// Ejemplos: VERIFICACION_CANTIDAD, REVISION_EMBALAJE, CONFIRMACION_CLIENTE, REVISION_DOCUMENTOS.
+// ------------------------------------------------------------
+model TipoValidacionDespacho {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  codigo        String   @unique @db.VarChar(50)
+  nombre        String   @db.VarChar(150)
+  descripcion   String?  @db.Text
+  activo        Boolean  @default(true)
+  ordenVisual   Int      @map("orden_visual")
+  metadata      Json?    @db.JsonB
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  checklistItems ChecklistDespachoItem[]
+
+  @@index([activo])
+  @@index([ordenVisual])
+  @@map("tipos_validacion_despacho")
+}
+
+// ------------------------------------------------------------
+// Despacho — evento formal de salida de un pedido desde la sede
+// estadoDespachoId: FK a estados_sistema (módulo 'despacho').
+//   Estados sugeridos: PENDIENTE, AUTORIZADO, EN_CARGUE, DESPACHADO, ENTREGADO, RECHAZADO, CANCELADO.
+// autorizadoPorUsuarioId: nullable; el despacho puede no requerir autorización explícita.
+// despachoPorUsuarioId: usuario que ejecuta físicamente el despacho (operario de bodega).
+// creadoPorUsuarioId: usuario que registra el evento en el sistema.
+// fechaDespacho: momento real en que el pedido sale de la sede.
+// IMPORTANTE: fechaListoDespacho y fechaDespachoCompleto viven desnormalizados en Pedido;
+//   se actualizan desde el service layer al cambiar estado del despacho.
+// IMPORTANTE: cambios de estado deben escribirse junto con auditoria_general en transacción.
+// ------------------------------------------------------------
+model Despacho {
+  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pedidoId               String   @map("pedido_id") @db.Uuid
+  sedeId                 String   @map("sede_id") @db.Uuid
+  estadoDespachoId       String   @map("estado_despacho_id") @db.Uuid
+  creadoPorUsuarioId     String   @map("creado_por_usuario_id") @db.Uuid
+  despachoPorUsuarioId   String   @map("despacho_por_usuario_id") @db.Uuid
+  autorizadoPorUsuarioId String?  @map("autorizado_por_usuario_id") @db.Uuid
+  fechaDespacho          DateTime @map("fecha_despacho")
+  observaciones          String?  @db.Text
+  metadata               Json?    @db.JsonB
+  creadoEn               DateTime @default(now()) @map("creado_en")
+  actualizadoEn          DateTime @updatedAt @map("actualizado_en")
+
+  pedido         Pedido                 @relation(fields: [pedidoId], references: [id], onDelete: Restrict)
+  sede           Sede                   @relation(fields: [sedeId], references: [id], onDelete: Restrict)
+  estadoDespacho EstadoSistema          @relation("DespachoEstado", fields: [estadoDespachoId], references: [id], onDelete: Restrict)
+  creadoPor      Usuario                @relation("DespachoCreadoPor", fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
+  despachoPor    Usuario                @relation("DespachoEncargadoPor", fields: [despachoPorUsuarioId], references: [id], onDelete: Restrict)
+  autorizadoPor  Usuario?               @relation("DespachoAutorizadoPor", fields: [autorizadoPorUsuarioId], references: [id], onDelete: SetNull)
+  items          DespachoItem[]
+  autorizaciones DespachoAutorizacion[]
+  checklists     ChecklistDespacho[]
+  evidencias     EvidenciaDespacho[]
+
+  @@index([pedidoId])
+  @@index([sedeId])
+  @@index([estadoDespachoId])
+  @@index([fechaDespacho])
+  @@map("despachos")
+}
+
+// ------------------------------------------------------------
+// DespachoItem — detalle de ítems despachados en un evento de despacho
+// cantidadPendientePosterior: CAMPO CALCULADO INMUTABLE — snapshot de la cantidad que quedó
+//   pendiente DESPUÉS de este despacho.
+//   Fórmula: cantidadPendiente_antes_del_despacho − cantidadDespachada
+//   Se calcula en el service layer antes de insertar; nunca se modifica retroactivamente.
+// No tiene actualizadoEn: el registro es inmutable una vez creado.
+// ------------------------------------------------------------
+model DespachoItem {
+  id                         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  despachoId                 String   @map("despacho_id") @db.Uuid
+  pedidoItemId               String   @map("pedido_item_id") @db.Uuid
+  cantidadDespachada         Decimal  @map("cantidad_despachada") @db.Decimal(14, 4)
+  // CAMPO CALCULADO INMUTABLE: snapshot de cantidad pendiente después de este despacho
+  cantidadPendientePosterior Decimal  @map("cantidad_pendiente_posterior") @db.Decimal(14, 4)
+  observaciones              String?  @db.Text
+  creadoEn                   DateTime @default(now()) @map("creado_en")
+
+  despacho   Despacho   @relation(fields: [despachoId], references: [id], onDelete: Cascade)
+  pedidoItem PedidoItem @relation(fields: [pedidoItemId], references: [id], onDelete: Restrict)
+
+  @@index([despachoId])
+  @@index([pedidoItemId])
+  @@map("despacho_items")
+}
+
+// ------------------------------------------------------------
+// DespachoAutorizacion — registro de decisión de autorización sobre un despacho
+// aprobada: true si autorizó, false si rechazó.
+// motivoRechazo: obligatorio en service layer cuando aprobada = false.
+// No tiene actualizadoEn: el registro de autorización es inmutable una vez creado.
+// IMPORTANTE: la creación de una autorización debe escribirse junto con auditoria_general
+//   en la misma transacción; el cambio de estado en Despacho también.
+// ------------------------------------------------------------
+model DespachoAutorizacion {
+  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  despachoId             String   @map("despacho_id") @db.Uuid
+  autorizadoPorUsuarioId String   @map("autorizado_por_usuario_id") @db.Uuid
+  aprobada               Boolean
+  // motivoRechazo: obligatorio cuando aprobada = false; validar en service layer
+  motivoRechazo          String?  @map("motivo_rechazo") @db.Text
+  observaciones          String?  @db.Text
+  creadoEn               DateTime @default(now()) @map("creado_en")
+
+  despacho      Despacho @relation(fields: [despachoId], references: [id], onDelete: Cascade)
+  autorizadoPor Usuario  @relation(fields: [autorizadoPorUsuarioId], references: [id], onDelete: Restrict)
+
+  @@index([despachoId])
+  @@index([autorizadoPorUsuarioId])
+  @@map("despacho_autorizaciones")
+}
+
+// ------------------------------------------------------------
+// ChecklistDespacho — cabecera de un checklist de validación para un despacho
+// Un despacho puede tener más de un checklist (ej: pre-cargue y post-cargue).
+// completado: true cuando todos los ítems del checklist han sido marcados.
+// completadoPorUsuarioId: usuario que marcó el checklist como completo.
+// ------------------------------------------------------------
+model ChecklistDespacho {
+  id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  despachoId             String    @map("despacho_id") @db.Uuid
+  completado             Boolean   @default(false)
+  completadoPorUsuarioId String?   @map("completado_por_usuario_id") @db.Uuid
+  fechaCompletado        DateTime? @map("fecha_completado")
+  observaciones          String?   @db.Text
+  creadoEn               DateTime  @default(now()) @map("creado_en")
+  actualizadoEn          DateTime  @updatedAt @map("actualizado_en")
+
+  despacho      Despacho                @relation(fields: [despachoId], references: [id], onDelete: Cascade)
+  completadoPor Usuario?                @relation(fields: [completadoPorUsuarioId], references: [id], onDelete: SetNull)
+  items         ChecklistDespachoItem[]
+
+  @@index([despachoId])
+  @@map("checklist_despacho")
+}
+
+// ------------------------------------------------------------
+// ChecklistDespachoItem — ítem individual verificado dentro de un checklist de despacho
+// tipoValidacionDespachoId: FK obligatorio a tipos_validacion_despacho (no texto libre).
+// aprobado: resultado de la verificación (true = cumple, false = no cumple).
+// IMPORTANTE: si algún ítem queda en false, la regla de negocio determina si el despacho
+//   puede continuar o queda bloqueado (validar en service layer según tipo de validación).
+// ------------------------------------------------------------
+model ChecklistDespachoItem {
+  id                       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  checklistDespachoId      String   @map("checklist_despacho_id") @db.Uuid
+  tipoValidacionDespachoId String   @map("tipo_validacion_despacho_id") @db.Uuid
+  aprobado                 Boolean
+  observaciones            String?  @db.Text
+  creadoEn                 DateTime @default(now()) @map("creado_en")
+  actualizadoEn            DateTime @updatedAt @map("actualizado_en")
+
+  checklistDespacho      ChecklistDespacho      @relation(fields: [checklistDespachoId], references: [id], onDelete: Cascade)
+  tipoValidacionDespacho TipoValidacionDespacho @relation(fields: [tipoValidacionDespachoId], references: [id], onDelete: Restrict)
+
+  @@index([checklistDespachoId])
+  @@index([tipoValidacionDespachoId])
+  @@map("checklist_despacho_items")
+}
+
+// ------------------------------------------------------------
+// UbicacionPedido — ubicación física actual de un pedido dentro de la operación
+// Representa el estado actual de dónde se encuentra el pedido en la sede.
+// pedidoId es @unique: solo existe UN registro de ubicación actual por pedido.
+// REGLA CRÍTICA: toda modificación de UbicacionPedido debe insertarse simultáneamente
+//   en HistorialUbicacionPedido dentro de la misma transacción (atomicidad garantizada).
+//   Así se mantiene coherencia entre el estado actual y el historial completo.
+// ultimaActualizacion: se llena explícitamente en el service al modificar la ubicación.
+// ------------------------------------------------------------
+model UbicacionPedido {
+  id                      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pedidoId                String   @unique @map("pedido_id") @db.Uuid
+  sedeId                  String   @map("sede_id") @db.Uuid
+  ubicacionId             String?  @map("ubicacion_id") @db.Uuid
+  descripcion             String?  @db.Text
+  actualizadoPorUsuarioId String   @map("actualizado_por_usuario_id") @db.Uuid
+  // ultimaActualizacion: se llena explícitamente al modificar; no usar @updatedAt
+  ultimaActualizacion     DateTime @map("ultima_actualizacion")
+  creadoEn                DateTime @default(now()) @map("creado_en")
+
+  pedido         Pedido     @relation(fields: [pedidoId], references: [id], onDelete: Restrict)
+  sede           Sede       @relation(fields: [sedeId], references: [id], onDelete: Restrict)
+  ubicacion      Ubicacion? @relation(fields: [ubicacionId], references: [id], onDelete: SetNull)
+  actualizadoPor Usuario    @relation(fields: [actualizadoPorUsuarioId], references: [id], onDelete: Restrict)
+
+  @@index([sedeId])
+  @@index([ubicacionId])
+  @@map("ubicacion_pedido")
+}
+
+// ------------------------------------------------------------
+// HistorialUbicacionPedido — registro inmutable de cada cambio de ubicación de un pedido
+// REGLA CRÍTICA: debe insertarse en la misma transacción que actualiza UbicacionPedido.
+//   Garantiza que el historial siempre refleja todos los movimientos sin brechas.
+// No tiene actualizadoEn: el registro es inmutable una vez creado.
+// ------------------------------------------------------------
+model HistorialUbicacionPedido {
+  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pedidoId               String   @map("pedido_id") @db.Uuid
+  sedeId                 String   @map("sede_id") @db.Uuid
+  ubicacionId            String?  @map("ubicacion_id") @db.Uuid
+  descripcion            String?  @db.Text
+  registradoPorUsuarioId String   @map("registrado_por_usuario_id") @db.Uuid
+  creadoEn               DateTime @default(now()) @map("creado_en")
+
+  pedido        Pedido     @relation(fields: [pedidoId], references: [id], onDelete: Restrict)
+  sede          Sede       @relation(fields: [sedeId], references: [id], onDelete: Restrict)
+  ubicacion     Ubicacion? @relation(fields: [ubicacionId], references: [id], onDelete: SetNull)
+  registradoPor Usuario    @relation(fields: [registradoPorUsuarioId], references: [id], onDelete: Restrict)
+
+  @@index([pedidoId])
+  @@index([sedeId])
+  @@index([creadoEn])
+  @@map("historial_ubicacion_pedido")
+}
+
+// ------------------------------------------------------------
+// EvidenciaDespacho — archivos o notas adjuntas como evidencia de un despacho
+// rutaArchivo: ruta interna del archivo físico (no URL pública directa).
+// nombreOriginal: nombre del archivo como lo subió el usuario.
+// Para OBSERVACION: rutaArchivo y nombreOriginal son nullable (solo texto descriptivo).
+// No tiene actualizadoEn: la evidencia es inmutable una vez registrada.
+// ------------------------------------------------------------
+model EvidenciaDespacho {
+  id                 String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  despachoId         String                @map("despacho_id") @db.Uuid
+  tipoEvidencia      TipoEvidenciaDespacho @map("tipo_evidencia")
+  rutaArchivo        String?               @map("ruta_archivo") @db.VarChar(500)
+  nombreOriginal     String?               @map("nombre_original") @db.VarChar(255)
+  descripcion        String?               @db.Text
+  creadoPorUsuarioId String                @map("creado_por_usuario_id") @db.Uuid
+  creadoEn           DateTime              @default(now()) @map("creado_en")
+
+  despacho  Despacho @relation(fields: [despachoId], references: [id], onDelete: Cascade)
+  creadoPor Usuario  @relation(fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
+
+  @@index([despachoId])
+  @@index([tipoEvidencia])
+  @@map("evidencias_despacho")
 }
