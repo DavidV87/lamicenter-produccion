@@ -208,3 +208,11 @@ ALTER TABLE "historial_estados_pqrs" ADD CONSTRAINT "historial_estados_pqrs_esta
 
 -- AddForeignKey
 ALTER TABLE "historial_estados_pqrs" ADD CONSTRAINT "historial_estados_pqrs_creado_por_usuario_id_fkey" FOREIGN KEY ("creado_por_usuario_id") REFERENCES "usuarios"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- Constraint: si generaReproceso=true debe existir novedadOperativaId o reprocesoId
+ALTER TABLE pqrs
+ADD CONSTRAINT chk_pqrs_genera_reproceso
+CHECK (
+  genera_reproceso = false OR
+  (novedad_operativa_id IS NOT NULL OR reproceso_id IS NOT NULL)
+);

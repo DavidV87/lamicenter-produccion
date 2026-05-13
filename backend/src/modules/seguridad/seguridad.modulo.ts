@@ -1,8 +1,12 @@
 import { Module } from '@nestjs/common';
+import { AuthModulo } from './auth/auth.modulo';
 
 /**
- * Módulo Seguridad — autenticación, autorización, usuarios y roles.
- * Implementación pendiente según orden de bloques del proyecto.
+ * Módulo Seguridad — agrupa autenticación, autorización, usuarios y roles.
+ * Exporta AuthModulo para que sus servicios estén disponibles si otros módulos lo necesitan.
  */
-@Module({})
+@Module({
+  imports: [AuthModulo],
+  exports: [AuthModulo],
+})
 export class SeguridadModulo {}

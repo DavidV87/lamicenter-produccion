@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 /**
  * Servicio Prisma global.
@@ -18,5 +18,28 @@ export class PrismaServicio extends PrismaClient implements OnModuleInit, OnModu
   async onModuleDestroy(): Promise<void> {
     await this.$disconnect();
     this.logger.log('Conexión a PostgreSQL cerrada');
+  }
+
+  /**
+   * Envuelve una operación en una transacción Prisma interactiva.
+   *
+   * Usar obligatoriamente para toda escritura múltiple crítica que requiera atomicidad:
+   *   - cambio de estado + historial_estados + auditoria_general
+   *   - despacho + despacho_items
+   *   - reproceso + novedad_operativa
+   *   - ubicacion_pedido + historial_ubicacion_pedido
+   *   - cualquier par de tablas que deban quedar consistentes o fallar juntas
+   *
+   * Ejemplo de uso:
+   *   await this.prisma.ejecutarTransaccion(async (tx) => {
+   *     await tx.pedido.update({ ... });
+   *     await tx.historialEstadoPedido.create({ ... });
+   *     await tx.auditoriaGeneral.create({ ... });
+   *   });
+   */
+  async ejecutarTransaccion<T>(
+    fn: (prisma: Prisma.TransactionClient) => Promise<T>,
+  ): Promise<T> {
+    return this.$transaction(fn);
   }
 }

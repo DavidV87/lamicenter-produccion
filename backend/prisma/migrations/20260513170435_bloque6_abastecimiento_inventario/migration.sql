@@ -641,3 +641,13 @@ ALTER TABLE "inventario_operativo" ADD CONSTRAINT "inventario_operativo_sede_id_
 
 -- AddForeignKey
 ALTER TABLE "inventario_operativo" ADD CONSTRAINT "inventario_operativo_ubicacion_id_fkey" FOREIGN KEY ("ubicacion_id") REFERENCES "ubicaciones"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- Constraint 1: unicidad de inventario con NULL en ubicacion_id
+DROP INDEX IF EXISTS "inventario_operativo_item_id_sede_id_ubicacion_id_key";
+CREATE UNIQUE INDEX "inventario_operativo_item_id_sede_id_ubicacion_id_key"
+ON inventario_operativo (item_id, sede_id, ubicacion_id) NULLS NOT DISTINCT;
+
+-- Constraint 2: recepcion debe tener compra O traslado origen
+ALTER TABLE recepciones_material
+ADD CONSTRAINT chk_recepcion_origen
+CHECK (compra_material_id IS NOT NULL OR traslado_material_id IS NOT NULL);

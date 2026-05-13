@@ -252,3 +252,9 @@ ALTER TABLE "historial_notificaciones" ADD CONSTRAINT "historial_notificaciones_
 
 -- AddForeignKey
 ALTER TABLE "historial_notificaciones" ADD CONSTRAINT "historial_notificaciones_usuario_receptor_id_fkey" FOREIGN KEY ("usuario_receptor_id") REFERENCES "usuarios"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- Constraint unicidad con NULLs en configuracion_notificacion
+DROP INDEX IF EXISTS "configuracion_notificacion_tipo_evento_canal_rol_destino_id_usuario_destino_id_key";
+CREATE UNIQUE INDEX ON configuracion_notificacion
+  (tipo_evento, canal, rol_destino_id, usuario_destino_id)
+  NULLS NOT DISTINCT;

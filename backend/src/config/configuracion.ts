@@ -16,10 +16,11 @@ export default registerAs('aplicacion', () => ({
     url: process.env.DATABASE_URL,
   },
 
-  // Reservado para implementación futura del módulo de seguridad
   jwt: {
-    secreto: process.env.JWT_SECRET,
-    expiracion: process.env.JWT_EXPIRES_IN || '8h',
-    expiracionRefresh: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+    accessSecret: process.env.JWT_ACCESS_SECRET || 'secreto_acceso_no_configurado_cambiar',
+    refreshSecret: process.env.JWT_REFRESH_SECRET || 'secreto_refresh_no_configurado_cambiar',
+    accessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m',
+    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+    bcryptSaltRounds: parseInt(process.env.BCRYPT_SALT_ROUNDS || '12', 10),
   },
 }));

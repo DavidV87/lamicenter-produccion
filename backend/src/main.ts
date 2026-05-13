@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AplicacionModulo } from './app.modulo';
+import { FiltroExcepcionesGlobal } from './common/filters/filtro-excepciones-global.filter';
 
 /**
  * Punto de entrada de la API Lamicenter.
@@ -11,6 +12,9 @@ async function iniciar(): Promise<void> {
 
   // Prefijo global para todas las rutas: /api/v1/...
   aplicacion.setGlobalPrefix(process.env.API_PREFIX || 'api/v1');
+
+  // Filtro global de excepciones — respuesta homogénea en formato RespuestaApi
+  aplicacion.useGlobalFilters(new FiltroExcepcionesGlobal());
 
   // Validación global de DTOs con class-validator
   aplicacion.useGlobalPipes(
