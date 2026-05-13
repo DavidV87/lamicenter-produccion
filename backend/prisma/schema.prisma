@@ -192,6 +192,15 @@ model Usuario {
   eventosNotificacionGenerados          EventoNotificacion[]
   configuracionesNotificacion           ConfiguracionNotificacion[]
   historialNotificaciones               HistorialNotificacion[]
+  // Bloque 9 — PQRS
+  pqrsCreadas                           Pqrs[]                      @relation("PqrsCreadaPor")
+  pqrsResponsableSolucion               Pqrs[]                      @relation("PqrsResponsableSolucion")
+  pqrsCerradas                          Pqrs[]                      @relation("PqrsCerradaPor")
+  pqrsSeguimientosCreados               PqrsSeguimiento[]
+  pqrsEvidenciasCreadas                 PqrsEvidencia[]
+  pqrsResponsabilidades                 PqrsResponsable[]           @relation("PqrsResponsableUsuario")
+  pqrsAsignaciones                      PqrsResponsable[]           @relation("PqrsResponsableAsignadoPor")
+  historialEstadosPqrs                  HistorialEstadoPqrs[]
 
   @@index([sedeId])
   @@index([rolId])
@@ -300,6 +309,10 @@ model EstadoSistema {
   trasladosMaterial           TrasladoMaterial[]        @relation("TrasladoEstado")
   // Bloque 7 — Despacho
   despachos                   Despacho[]                @relation("DespachoEstado")
+  // Bloque 9 — PQRS
+  pqrsEstados                 Pqrs[]                    @relation("PqrsEstado")
+  historialAnteriorPqrs       HistorialEstadoPqrs[]     @relation("EstadoAnteriorPqrs")
+  historialNuevoPqrs          HistorialEstadoPqrs[]     @relation("EstadoNuevoPqrs")
 
   @@unique([modulo, codigo])
   @@index([modulo])
@@ -502,6 +515,8 @@ model Cliente {
   contactos     ContactoCliente[]
   facturas      Factura[]         @relation("FacturaCliente")
   pedidos       Pedido[]
+  // Bloque 9 — PQRS
+  pqrs          Pqrs[]
 
   @@index([sedePrincipalId])
   @@index([activo])
@@ -629,6 +644,8 @@ model TipoNovedad {
   actualizadoEn DateTime       @updatedAt @map("actualizado_en")
 
   novedadesOperativas NovedadOperativa[]
+  // Bloque 9 — PQRS
+  pqrs                Pqrs[]
 
   @@index([aplicaA])
   @@map("tipos_novedad")
@@ -855,6 +872,8 @@ model Factura {
   creadoPor      Usuario?        @relation("FacturaCreadaPor", fields: [creadoPorUsuarioId], references: [id], onDelete: SetNull)
   items          FacturaItem[]
   facturasPedido FacturaPedido[]
+  // Bloque 9 — PQRS
+  pqrs           Pqrs[]
 
   @@index([sedeId])
   @@index([clienteId])
@@ -1107,6 +1126,8 @@ model Pedido {
   despachos              Despacho[]
   ubicacionActual        UbicacionPedido?
   historialUbicaciones   HistorialUbicacionPedido[]
+  // Bloque 9 — PQRS
+  pqrs                   Pqrs[]
 
   @@index([sedeVentaId])
   @@index([sedeResponsableId])
@@ -1153,6 +1174,8 @@ model PedidoItem {
   materialesCliente MaterialCliente[]
   // Bloque 7 — Despacho
   despachoItems     DespachoItem[]
+  // Bloque 9 — PQRS
+  pqrs              Pqrs[]
 
   @@index([pedidoId])
   @@index([itemId])
@@ -1569,6 +1592,8 @@ model OrdenProduccion {
   requerimientosMaterial RequerimientoMaterial[]
   movimientosMaterial    MovimientoMaterial[]
   materialesReservados   MaterialReservado[]
+  // Bloque 9 — PQRS
+  pqrs                   Pqrs[]
 
   @@index([pedidoId])
   @@index([sedeProduccionId])
@@ -1624,6 +1649,8 @@ model Suborden {
   requerimientosMaterial RequerimientoMaterial[]
   movimientosMaterial    MovimientoMaterial[]
   materialesReservados   MaterialReservado[]
+  // Bloque 9 — PQRS
+  pqrs                   Pqrs[]
 
   @@index([pedidoId])
   @@index([ordenProduccionId])
@@ -1766,6 +1793,8 @@ model NovedadOperativa {
   reportadoPor          Usuario          @relation(fields: [reportadoPorId], references: [id], onDelete: Restrict)
   // Back-ref: reprocesos que señalan esta novedad como su origen
   reprocesosGenerados   Reproceso[]      @relation("ReprocesoOrigenNovedad")
+  // Bloque 9 — PQRS
+  pqrs                  Pqrs[]
 
   @@index([tipoNovedadId])
   @@index([ordenProduccionId])
@@ -1814,6 +1843,8 @@ model Reproceso {
   item                Item?             @relation("ReprocesoItemUtilizado", fields: [itemId], references: [id], onDelete: SetNull)
   autorizadoPor       Usuario           @relation("ReprocesoAutorizadoPor", fields: [autorizadoPorUsuarioId], references: [id], onDelete: Restrict)
   creadoPor           Usuario           @relation("ReprocesoCreadoPor", fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
+  // Bloque 9 — PQRS
+  pqrs                Pqrs[]
 
   @@index([novedadOperativaId])
   @@index([pedidoOrigenId])
@@ -3060,4 +3091,221 @@ model HistorialNotificacion {
   @@index([canal])
   @@index([estadoEnvio])
   @@map("historial_notificaciones")
+}
+
+// ============================================================
+// BLOQUE 9 — PQRS (Peticiones, Quejas, Reclamos y Sugerencias)
+// ============================================================
+
+// ------------------------------------------------------------
+// Tipo de hito registrado en el historial funcional del PQRS
+// ------------------------------------------------------------
+enum TipoSeguimientoPqrs {
+  CREACION
+  ASIGNACION
+  ACTUALIZACION
+  SOLUCION
+  CIERRE
+  REAPERTURA
+  ANULACION
+}
+
+// ------------------------------------------------------------
+// Tipo de evidencia adjunta a un PQRS
+// OBSERVACION: no requiere archivo físico (rutaArchivo nullable)
+// ------------------------------------------------------------
+enum TipoEvidenciaPqrs {
+  FOTO
+  DOCUMENTO
+  OBSERVACION
+}
+
+// ------------------------------------------------------------
+// Rol funcional de un responsable asignado a un PQRS
+// ------------------------------------------------------------
+enum RolResponsablePqrs {
+  CREADOR
+  EJECUTOR
+  AUTORIZADOR
+  SUPERVISOR
+}
+
+// ------------------------------------------------------------
+// Pqrs — peticiones, quejas, reclamos y sugerencias
+// clienteId: obligatorio en V1.0; todo PQRS pertenece a un cliente.
+// pedidoId, facturaId, ordenProduccionId, subordenId, pedidoItemId: opcionales.
+//   Se asocian cuando la información esté disponible al crear o actualizar.
+// estadoPqrsId: FK a estados_sistema módulo 'pqrs'.
+//   Seeds sugeridos: abierta, en_revision, en_solucion, solucion_aplicada, cerrada, anulada.
+// tipoNovedadId: clasifica el tipo de PQRS; reutiliza el catálogo tipos_novedad.
+// generaReproceso: si true, debe existir novedadOperativaId o reprocesoId.
+//   ADVERTENCIA: esta regla no puede expresarse en Prisma 5.
+//   Aplicar en migración:
+//     ALTER TABLE pqrs ADD CONSTRAINT chk_pqrs_genera_reproceso
+//     CHECK (genera_reproceso = false OR
+//            (novedad_operativa_id IS NOT NULL OR reproceso_id IS NOT NULL));
+//   Validar también en service layer antes de persistir.
+// costoEstimado: referencia operativa únicamente. Costo detallado no se implementa en V1.0.
+// consecutivo: identificador legible asignado por el backend (ej: "PQRS-0001"). Único.
+// Múltiples PQRS sobre el mismo pedido o ítem son válidos.
+//   Backend debe emitir alerta cuando ya exista un PQRS con estado abierto
+//   para el mismo pedidoId o pedidoItemId antes de persistir uno nuevo.
+// IMPORTANTE: cambios de estado deben escribirse junto con historial_estados_pqrs
+//   y auditoria_general dentro de la misma transacción (atomicidad obligatoria).
+// ------------------------------------------------------------
+model Pqrs {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  consecutivo           String    @unique @db.VarChar(30)
+  clienteId             String    @map("cliente_id") @db.Uuid
+  pedidoId              String?   @map("pedido_id") @db.Uuid
+  facturaId             String?   @map("factura_id") @db.Uuid
+  ordenProduccionId     String?   @map("orden_produccion_id") @db.Uuid
+  subordenId            String?   @map("suborden_id") @db.Uuid
+  pedidoItemId          String?   @map("pedido_item_id") @db.Uuid
+  tipoNovedadId         String    @map("tipo_novedad_id") @db.Uuid
+  estadoPqrsId          String    @map("estado_pqrs_id") @db.Uuid
+  creadoPorUsuarioId    String    @map("creado_por_usuario_id") @db.Uuid
+  /// Usuario asignado para ejecutar la solución operativa
+  responsableSolucionId String?   @map("responsable_solucion_id") @db.Uuid
+  cerradoPorUsuarioId   String?   @map("cerrado_por_usuario_id") @db.Uuid
+  fechaCierre           DateTime? @map("fecha_cierre")
+  /// Si true: debe existir novedadOperativaId o reprocesoId (ver CHECK constraint en migración)
+  generaReproceso       Boolean   @default(false) @map("genera_reproceso")
+  novedadOperativaId    String?   @map("novedad_operativa_id") @db.Uuid
+  reprocesoId           String?   @map("reproceso_id") @db.Uuid
+  /// Referencia operativa de costo. Costo detallado no se implementa en V1.0.
+  costoEstimado         Decimal?  @map("costo_estimado") @db.Decimal(14, 4)
+  descripcion           String    @db.Text
+  solucionAplicada      String?   @map("solucion_aplicada") @db.Text
+  metadata              Json?     @db.JsonB
+  creadoEn              DateTime  @default(now()) @map("creado_en")
+  actualizadoEn         DateTime  @updatedAt @map("actualizado_en")
+
+  cliente             Cliente               @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  pedido              Pedido?               @relation(fields: [pedidoId], references: [id], onDelete: SetNull)
+  factura             Factura?              @relation(fields: [facturaId], references: [id], onDelete: SetNull)
+  ordenProduccion     OrdenProduccion?      @relation(fields: [ordenProduccionId], references: [id], onDelete: SetNull)
+  suborden            Suborden?             @relation(fields: [subordenId], references: [id], onDelete: SetNull)
+  pedidoItem          PedidoItem?           @relation(fields: [pedidoItemId], references: [id], onDelete: SetNull)
+  tipoNovedad         TipoNovedad           @relation(fields: [tipoNovedadId], references: [id], onDelete: Restrict)
+  estadoPqrs          EstadoSistema         @relation("PqrsEstado", fields: [estadoPqrsId], references: [id], onDelete: Restrict)
+  creadoPor           Usuario               @relation("PqrsCreadaPor", fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
+  responsableSolucion Usuario?              @relation("PqrsResponsableSolucion", fields: [responsableSolucionId], references: [id], onDelete: SetNull)
+  cerradoPor          Usuario?              @relation("PqrsCerradaPor", fields: [cerradoPorUsuarioId], references: [id], onDelete: SetNull)
+  novedadOperativa    NovedadOperativa?     @relation(fields: [novedadOperativaId], references: [id], onDelete: SetNull)
+  reproceso           Reproceso?            @relation(fields: [reprocesoId], references: [id], onDelete: SetNull)
+  seguimientos        PqrsSeguimiento[]
+  evidencias          PqrsEvidencia[]
+  responsables        PqrsResponsable[]
+  historialEstados    HistorialEstadoPqrs[]
+
+  @@index([clienteId])
+  @@index([pedidoId])
+  @@index([estadoPqrsId])
+  @@index([tipoNovedadId])
+  @@index([creadoEn])
+  @@map("pqrs")
+}
+
+// ------------------------------------------------------------
+// PqrsSeguimiento — historial funcional del ciclo de vida del PQRS
+// Registro inmutable: no tiene actualizadoEn.
+// Captura cada hito del proceso: creación, asignación, solución, cierre, reapertura, etc.
+// ------------------------------------------------------------
+model PqrsSeguimiento {
+  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pqrsId             String              @map("pqrs_id") @db.Uuid
+  creadoPorUsuarioId String              @map("creado_por_usuario_id") @db.Uuid
+  tipoSeguimiento    TipoSeguimientoPqrs @map("tipo_seguimiento")
+  descripcion        String              @db.Text
+  observaciones      String?             @db.Text
+  creadoEn           DateTime            @default(now()) @map("creado_en")
+
+  pqrs      Pqrs    @relation(fields: [pqrsId], references: [id], onDelete: Cascade)
+  creadoPor Usuario @relation(fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
+
+  @@index([pqrsId])
+  @@index([tipoSeguimiento])
+  @@map("pqrs_seguimientos")
+}
+
+// ------------------------------------------------------------
+// PqrsEvidencia — archivos y observaciones adjuntas a un PQRS
+// Preparada para V2/V3 con fotos y documentos físicos.
+// rutaArchivo nullable: tipo OBSERVACION no requiere archivo.
+// Registro inmutable: no tiene actualizadoEn.
+// ------------------------------------------------------------
+model PqrsEvidencia {
+  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pqrsId             String            @map("pqrs_id") @db.Uuid
+  creadoPorUsuarioId String            @map("creado_por_usuario_id") @db.Uuid
+  tipoEvidencia      TipoEvidenciaPqrs @map("tipo_evidencia")
+  /// Ruta del archivo adjunto. Nullable para tipo OBSERVACION (sin archivo físico).
+  rutaArchivo        String?           @map("ruta_archivo") @db.VarChar(500)
+  nombreOriginal     String?           @map("nombre_original") @db.VarChar(255)
+  descripcion        String?           @db.Text
+  creadoEn           DateTime          @default(now()) @map("creado_en")
+
+  pqrs      Pqrs    @relation(fields: [pqrsId], references: [id], onDelete: Cascade)
+  creadoPor Usuario @relation(fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
+
+  @@index([pqrsId])
+  @@index([tipoEvidencia])
+  @@map("pqrs_evidencias")
+}
+
+// ------------------------------------------------------------
+// PqrsResponsable — responsables asignados a un PQRS
+// Permite múltiples responsables simultáneos con diferentes roles.
+// Reasignación: cerrar registro activo (fechaFinAsignacion = now) y crear uno nuevo.
+// activo = true: responsable vigente; activo = false: asignación histórica cerrada.
+// Registro inmutable al crear: no tiene actualizadoEn.
+// El cierre se registra seteando fechaFinAsignacion, no modificando el registro.
+// ------------------------------------------------------------
+model PqrsResponsable {
+  id                   String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pqrsId               String             @map("pqrs_id") @db.Uuid
+  usuarioId            String             @map("usuario_id") @db.Uuid
+  rolResponsable       RolResponsablePqrs @map("rol_responsable")
+  activo               Boolean            @default(true)
+  fechaAsignacion      DateTime           @map("fecha_asignacion")
+  /// Fecha de cierre de esta asignación. Se establece al reasignar o cerrar responsabilidad.
+  fechaFinAsignacion   DateTime?          @map("fecha_fin_asignacion")
+  asignadoPorUsuarioId String?            @map("asignado_por_usuario_id") @db.Uuid
+  observaciones        String?            @db.Text
+  creadoEn             DateTime           @default(now()) @map("creado_en")
+
+  pqrs        Pqrs     @relation(fields: [pqrsId], references: [id], onDelete: Cascade)
+  usuario     Usuario  @relation("PqrsResponsableUsuario", fields: [usuarioId], references: [id], onDelete: Restrict)
+  asignadoPor Usuario? @relation("PqrsResponsableAsignadoPor", fields: [asignadoPorUsuarioId], references: [id], onDelete: SetNull)
+
+  @@index([pqrsId])
+  @@index([usuarioId])
+  @@index([activo])
+  @@map("pqrs_responsables")
+}
+
+// ------------------------------------------------------------
+// HistorialEstadoPqrs — registro inmutable de cada cambio de estado de un PQRS
+// IMPORTANTE: debe escribirse junto con auditoria_general dentro de la misma transacción.
+// estadoAnteriorId nullable: en la transición inicial el PQRS no tiene estado previo.
+// No tiene actualizadoEn: el registro es inmutable una vez creado.
+// ------------------------------------------------------------
+model HistorialEstadoPqrs {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pqrsId             String   @map("pqrs_id") @db.Uuid
+  estadoAnteriorId   String?  @map("estado_anterior_id") @db.Uuid
+  estadoNuevoId      String   @map("estado_nuevo_id") @db.Uuid
+  creadoPorUsuarioId String   @map("creado_por_usuario_id") @db.Uuid
+  observaciones      String?  @db.Text
+  creadoEn           DateTime @default(now()) @map("creado_en")
+
+  pqrs           Pqrs           @relation(fields: [pqrsId], references: [id], onDelete: Cascade)
+  estadoAnterior EstadoSistema? @relation("EstadoAnteriorPqrs", fields: [estadoAnteriorId], references: [id], onDelete: SetNull)
+  estadoNuevo    EstadoSistema  @relation("EstadoNuevoPqrs", fields: [estadoNuevoId], references: [id], onDelete: Restrict)
+  creadoPor      Usuario        @relation(fields: [creadoPorUsuarioId], references: [id], onDelete: Restrict)
+
+  @@index([pqrsId])
+  @@index([estadoNuevoId])
+  @@map("historial_estados_pqrs")
 }
