@@ -98,9 +98,15 @@ model Rol {
   creadoEn      DateTime @default(now()) @map("creado_en")
   actualizadoEn DateTime @updatedAt @map("actualizado_en")
 
-  usuarios                Usuario[]
-  rolesPermisos           RolPermiso[]
-  transicionesAutorizadas TransicionRolAutorizado[]
+  usuarios                    Usuario[]
+  rolesPermisos               RolPermiso[]
+  transicionesAutorizadas     TransicionRolAutorizado[]
+  // Bloque 8 — Notificaciones y dashboards
+  alertasRolesDestino         AlertaRolDestino[]
+  eventosNotificacion         EventoNotificacion[]
+  configuracionesNotificacion ConfiguracionNotificacion[]
+  configuracionesDashboard    ConfiguracionDashboard[]
+  configuracionesMetricas     ConfiguracionMetrica[]
 
   @@map("roles")
 }
@@ -120,65 +126,72 @@ model Usuario {
   actualizadoEn DateTime  @updatedAt @map("actualizado_en")
   ultimoAcceso  DateTime? @map("ultimo_acceso")
 
-  sede                                  Sede                       @relation(fields: [sedeId], references: [id], onDelete: Restrict)
-  rol                                   Rol                        @relation(fields: [rolId], references: [id], onDelete: Restrict)
+  sede                                  Sede                        @relation(fields: [sedeId], references: [id], onDelete: Restrict)
+  rol                                   Rol                         @relation(fields: [rolId], references: [id], onDelete: Restrict)
   auditorias                            AuditoriaGeneral[]
-  documentosCreados                     Documento[]                @relation("DocumentoCreadoPor")
-  versionesSubidas                      DocumentoVersion[]         @relation("VersionSubidaPor")
-  facturasComoVendedor                  Factura[]                  @relation("FacturaVendedor")
-  facturasCreadas                       Factura[]                  @relation("FacturaCreadaPor")
-  itemsMapeados                         FacturaItem[]              @relation("ItemMapeadoPor")
-  documentosRelacionados                DocumentoRelacionado[]     @relation("DocumentoRelacionadoPor")
-  lecturasDocumento                     LecturaDocumento[]         @relation("LecturaProcesadaPor")
-  pedidosComoVendedor                   Pedido[]                   @relation("PedidoVendedor")
-  pedidosCreados                        Pedido[]                   @relation("PedidoCreadoPor")
+  documentosCreados                     Documento[]                 @relation("DocumentoCreadoPor")
+  versionesSubidas                      DocumentoVersion[]          @relation("VersionSubidaPor")
+  facturasComoVendedor                  Factura[]                   @relation("FacturaVendedor")
+  facturasCreadas                       Factura[]                   @relation("FacturaCreadaPor")
+  itemsMapeados                         FacturaItem[]               @relation("ItemMapeadoPor")
+  documentosRelacionados                DocumentoRelacionado[]      @relation("DocumentoRelacionadoPor")
+  lecturasDocumento                     LecturaDocumento[]          @relation("LecturaProcesadaPor")
+  pedidosComoVendedor                   Pedido[]                    @relation("PedidoVendedor")
+  pedidosCreados                        Pedido[]                    @relation("PedidoCreadoPor")
   validacionesPedido                    ValidacionPedido[]
-  asignacionesComoVendedor              AsignacionPedido[]         @relation("AsignacionVendedor")
-  asignacionesRealizadas                AsignacionPedido[]         @relation("AsignacionRealizadaPor")
-  materialesClienteRecibidos            MaterialCliente[]          @relation("MaterialClienteRecibidoPor")
-  materialesClienteCreados              MaterialCliente[]          @relation("MaterialClienteCreadoPor")
-  bloqueosPedidoCreados                 BloqueoPedido[]            @relation("BloqueoPedidoCreadoPor")
-  bloqueosPedidoDesbloqueados           BloqueoPedido[]            @relation("BloqueoPedidoDesbloqueadoPor")
-  pedidoSedesSolicitadas                PedidoSede[]               @relation("PedidoSedeSolicitadaPor")
-  pedidoSedesAutorizadas                PedidoSede[]               @relation("PedidoSedeAutorizadaPor")
+  asignacionesComoVendedor              AsignacionPedido[]          @relation("AsignacionVendedor")
+  asignacionesRealizadas                AsignacionPedido[]          @relation("AsignacionRealizadaPor")
+  materialesClienteRecibidos            MaterialCliente[]           @relation("MaterialClienteRecibidoPor")
+  materialesClienteCreados              MaterialCliente[]           @relation("MaterialClienteCreadoPor")
+  bloqueosPedidoCreados                 BloqueoPedido[]             @relation("BloqueoPedidoCreadoPor")
+  bloqueosPedidoDesbloqueados           BloqueoPedido[]             @relation("BloqueoPedidoDesbloqueadoPor")
+  pedidoSedesSolicitadas                PedidoSede[]                @relation("PedidoSedeSolicitadaPor")
+  pedidoSedesAutorizadas                PedidoSede[]                @relation("PedidoSedeAutorizadaPor")
   historialEstadosPedido                HistorialEstadoPedido[]
   entregasRealizadas                    Entrega[]
   facturasPedidoRelacionadas            FacturaPedido[]
   pedidoItemDocumentosCreados           PedidoItemDocumento[]
-  ordenesProduccionCreadas              OrdenProduccion[]          @relation("OrdenProduccionCreadaPor")
-  subordenesCreadas                     Suborden[]                 @relation("SubordenCreadaPor")
-  asignacionesOrdenComoOperador         OrdenAsignacion[]          @relation("OrdenAsignacionOperador")
-  asignacionesOrdenRealizadas           OrdenAsignacion[]          @relation("OrdenAsignacionRealizadaPor")
+  ordenesProduccionCreadas              OrdenProduccion[]           @relation("OrdenProduccionCreadaPor")
+  subordenesCreadas                     Suborden[]                  @relation("SubordenCreadaPor")
+  asignacionesOrdenComoOperador         OrdenAsignacion[]           @relation("OrdenAsignacionOperador")
+  asignacionesOrdenRealizadas           OrdenAsignacion[]           @relation("OrdenAsignacionRealizadaPor")
   eventosOperativos                     EventoOperativo[]
   novedadesReportadas                   NovedadOperativa[]
-  reprocesosAutorizados                 Reproceso[]                @relation("ReprocesoAutorizadoPor")
-  reprocesosCreados                     Reproceso[]                @relation("ReprocesoCreadoPor")
+  reprocesosAutorizados                 Reproceso[]                 @relation("ReprocesoAutorizadoPor")
+  reprocesosCreados                     Reproceso[]                 @relation("ReprocesoCreadoPor")
   historialEstadosOrden                 HistorialEstadoOrden[]
   historialEstadosSuborden              HistorialEstadoSuborden[]
   calculoPerdidasAutorizados            CalculoPerdidas[]
   // Bloque 6 — Abastecimiento
-  requerimientosMaterialCreados         RequerimientoMaterial[]    @relation("RequerimientoMaterialCreadoPor")
-  requerimientosMaterialAtendidos       RequerimientoMaterial[]    @relation("RequerimientoMaterialAtendidoPor")
-  solicitudesCompraCreadas              SolicitudCompra[]          @relation("SolicitudCompraCreadaPor")
-  solicitudesCompraAutorizadas          SolicitudCompra[]          @relation("SolicitudCompraAutorizadaPor")
-  comprasMaterialCreadas                CompraMaterial[]           @relation("CompraMaterialCreadaPor")
-  comprasMaterialAutorizadas            CompraMaterial[]           @relation("CompraMaterialAutorizadaPor")
+  requerimientosMaterialCreados         RequerimientoMaterial[]     @relation("RequerimientoMaterialCreadoPor")
+  requerimientosMaterialAtendidos       RequerimientoMaterial[]     @relation("RequerimientoMaterialAtendidoPor")
+  solicitudesCompraCreadas              SolicitudCompra[]           @relation("SolicitudCompraCreadaPor")
+  solicitudesCompraAutorizadas          SolicitudCompra[]           @relation("SolicitudCompraAutorizadaPor")
+  comprasMaterialCreadas                CompraMaterial[]            @relation("CompraMaterialCreadaPor")
+  comprasMaterialAutorizadas            CompraMaterial[]            @relation("CompraMaterialAutorizadaPor")
   recepcionesRealizadas                 RecepcionMaterial[]
-  trasladosMaterialSolicitados          TrasladoMaterial[]         @relation("TrasladoMaterialSolicitadoPor")
-  trasladosMaterialAutorizados          TrasladoMaterial[]         @relation("TrasladoMaterialAutorizadoPor")
+  trasladosMaterialSolicitados          TrasladoMaterial[]          @relation("TrasladoMaterialSolicitadoPor")
+  trasladosMaterialAutorizados          TrasladoMaterial[]          @relation("TrasladoMaterialAutorizadoPor")
   movimientosMaterial                   MovimientoMaterial[]
   materialesReservados                  MaterialReservado[]
-  abastecimientoAlertasCreadas          AbastecimientoAlerta[]     @relation("AbastecimientoAlertaCreadaPor")
-  abastecimientoAlertasCerradas         AbastecimientoAlerta[]     @relation("AbastecimientoAlertaCerradaPor")
+  abastecimientoAlertasCreadas          AbastecimientoAlerta[]      @relation("AbastecimientoAlertaCreadaPor")
+  abastecimientoAlertasCerradas         AbastecimientoAlerta[]      @relation("AbastecimientoAlertaCerradaPor")
   // Bloque 7 — Despacho
-  despachosCreados                      Despacho[]                 @relation("DespachoCreadoPor")
-  despachosComoEncargado                Despacho[]                 @relation("DespachoEncargadoPor")
-  despachosAutorizados                  Despacho[]                 @relation("DespachoAutorizadoPor")
+  despachosCreados                      Despacho[]                  @relation("DespachoCreadoPor")
+  despachosComoEncargado                Despacho[]                  @relation("DespachoEncargadoPor")
+  despachosAutorizados                  Despacho[]                  @relation("DespachoAutorizadoPor")
   despachoAutorizaciones                DespachoAutorizacion[]
   checklistsDespachosCompletados        ChecklistDespacho[]
   ubicacionesPedidoActualizadas         UbicacionPedido[]
   historialUbicacionesPedidoRegistradas HistorialUbicacionPedido[]
   evidenciasDespacho                    EvidenciaDespacho[]
+  // Bloque 8 — Notificaciones y dashboards
+  notificacionesRecibidas               NotificacionUsuario[]       @relation("NotificacionDestinoUsuario")
+  notificacionesCreadas                 NotificacionUsuario[]       @relation("NotificacionCreadaPor")
+  alertasSistemaCreadas                 AlertaSistema[]
+  eventosNotificacionGenerados          EventoNotificacion[]
+  configuracionesNotificacion           ConfiguracionNotificacion[]
+  historialNotificaciones               HistorialNotificacion[]
 
   @@index([sedeId])
   @@index([rolId])
@@ -2754,4 +2767,297 @@ model EvidenciaDespacho {
   @@index([despachoId])
   @@index([tipoEvidencia])
   @@map("evidencias_despacho")
+}
+
+// ============================================================
+// BLOQUE 8 — Notificaciones, alertas, eventos y dashboards
+// ============================================================
+
+// ------------------------------------------------------------
+// Canal por el que se envía una notificación o evento
+// ------------------------------------------------------------
+enum CanalNotificacion {
+  IN_APP
+  EMAIL
+  SMS
+  WEBHOOK
+  PUSH
+}
+
+// ------------------------------------------------------------
+// Estado del intento de envío de un EventoNotificacion
+// ------------------------------------------------------------
+enum EstadoEnvioNotificacion {
+  PENDIENTE
+  EN_PROCESO
+  ENVIADO
+  FALLIDO
+  CANCELADO
+}
+
+// ------------------------------------------------------------
+// Prioridad de una notificación interna o alerta
+// ------------------------------------------------------------
+enum PrioridadNotificacion {
+  ALTA
+  MEDIA
+  BAJA
+}
+
+// ------------------------------------------------------------
+// Tipo semántico de un mensaje de notificación interna
+// ------------------------------------------------------------
+enum TipoMensajeNotificacion {
+  INFORMACION
+  ADVERTENCIA
+  ALERTA
+  CRITICA
+  CONFIRMACION
+}
+
+// ------------------------------------------------------------
+// NotificacionUsuario — mensajes internos dirigidos a un
+// usuario específico. Se generan desde lógica de negocio
+// (cambios de estado, asignaciones, PQRS, etc.).
+// leida y fechaLeida permiten controlar acuse de recibo.
+// ------------------------------------------------------------
+model NotificacionUsuario {
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  destinatarioUsuarioId String                  @map("destinatario_usuario_id") @db.Uuid
+  creadoPorUsuarioId    String?                 @map("creado_por_usuario_id") @db.Uuid
+  /// Tipo semántico del mensaje: INFORMACION, ADVERTENCIA, ALERTA, CRITICA, CONFIRMACION
+  tipoMensaje           TipoMensajeNotificacion @map("tipo_mensaje")
+  prioridad             PrioridadNotificacion   @default(MEDIA)
+  titulo                String                  @db.VarChar(200)
+  cuerpo                String                  @db.Text
+  /// Tipo de entidad relacionada (ej: "pedido", "orden", "pqrs").
+  /// El backend resuelve la entidad usando un resolvedor centralizado con entidadTipo + entidadId.
+  entidadTipo           String?                 @map("entidad_tipo") @db.VarChar(80)
+  /// UUID de la entidad relacionada. No es FK directa para evitar rigidez.
+  entidadId             String?                 @map("entidad_id") @db.Uuid
+  leida                 Boolean                 @default(false)
+  fechaLeida            DateTime?               @map("fecha_leida")
+  creadoEn              DateTime                @default(now()) @map("creado_en")
+
+  destinatario Usuario  @relation("NotificacionDestinoUsuario", fields: [destinatarioUsuarioId], references: [id], onDelete: Restrict)
+  creadoPor    Usuario? @relation("NotificacionCreadaPor", fields: [creadoPorUsuarioId], references: [id], onDelete: SetNull)
+
+  @@index([destinatarioUsuarioId])
+  @@index([leida])
+  @@index([tipoMensaje])
+  @@index([creadoEn])
+  @@map("notificaciones_usuario")
+}
+
+// ------------------------------------------------------------
+// AlertaSistema — alertas operativas genéricas no limitadas
+// a un único usuario. Pueden estar dirigidas a uno o más roles
+// mediante AlertaRolDestino.
+// entidadTipo + entidadId: resolvedor centralizado en backend.
+// ------------------------------------------------------------
+model AlertaSistema {
+  id                 String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  creadoPorUsuarioId String?                 @map("creado_por_usuario_id") @db.Uuid
+  tipoMensaje        TipoMensajeNotificacion @map("tipo_mensaje")
+  prioridad          PrioridadNotificacion   @default(MEDIA)
+  titulo             String                  @db.VarChar(200)
+  cuerpo             String                  @db.Text
+  /// Tipo de entidad relacionada (ej: "pedido", "suborden", "compra").
+  entidadTipo        String?                 @map("entidad_tipo") @db.VarChar(80)
+  entidadId          String?                 @map("entidad_id") @db.Uuid
+  /// Metadata adicional estructurada para contexto extra (umbrales, valores, etc.)
+  metadata           Json?                   @db.JsonB
+  activa             Boolean                 @default(true)
+  creadoEn           DateTime                @default(now()) @map("creado_en")
+  cerradaEn          DateTime?               @map("cerrada_en")
+
+  creadoPor    Usuario?           @relation(fields: [creadoPorUsuarioId], references: [id], onDelete: SetNull)
+  rolesDestino AlertaRolDestino[]
+
+  @@index([activa])
+  @@index([prioridad])
+  @@index([creadoEn])
+  @@map("alertas_sistema")
+}
+
+// ------------------------------------------------------------
+// AlertaRolDestino — relación N:M entre AlertaSistema y Rol.
+// Permite que una alerta sea visible para múltiples roles.
+// La combinación alertaSistemaId + rolId debe ser única.
+// ------------------------------------------------------------
+model AlertaRolDestino {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  alertaSistemaId String   @map("alerta_sistema_id") @db.Uuid
+  rolId           String   @map("rol_id") @db.Uuid
+  creadoEn        DateTime @default(now()) @map("creado_en")
+
+  alertaSistema AlertaSistema @relation(fields: [alertaSistemaId], references: [id], onDelete: Cascade)
+  rol           Rol           @relation(fields: [rolId], references: [id], onDelete: Cascade)
+
+  @@unique([alertaSistemaId, rolId])
+  @@index([rolId])
+  @@map("alerta_roles_destino")
+}
+
+// ------------------------------------------------------------
+// EventoNotificacion — cola desacoplada para canales futuros
+// (email, SMS, webhook, push). Permite reintentos por canal
+// sin acoplarse al modelo de negocio.
+// destinatarioUsuarioId y rolDestinoId son ambos opcionales:
+//   - usuario concreto O rol destino, o ninguno si es broadcast.
+// intentos registra número de intentos de envío.
+// ------------------------------------------------------------
+model EventoNotificacion {
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  destinatarioUsuarioId String?                 @map("destinatario_usuario_id") @db.Uuid
+  rolDestinoId          String?                 @map("rol_destino_id") @db.Uuid
+  canal                 CanalNotificacion
+  tipoMensaje           TipoMensajeNotificacion @map("tipo_mensaje")
+  prioridad             PrioridadNotificacion   @default(MEDIA)
+  titulo                String                  @db.VarChar(200)
+  cuerpo                String                  @db.Text
+  /// Tipo de entidad relacionada. Backend resuelve con entidadTipo + entidadId.
+  entidadTipo           String?                 @map("entidad_tipo") @db.VarChar(80)
+  entidadId             String?                 @map("entidad_id") @db.Uuid
+  /// Payload serializado para el canal (ej: template email, payload webhook)
+  payload               Json?                   @db.JsonB
+  estadoEnvio           EstadoEnvioNotificacion @default(PENDIENTE) @map("estado_envio")
+  intentos              Int                     @default(0)
+  proximoIntento        DateTime?               @map("proximo_intento")
+  /// Mensaje de error del último intento fallido
+  mensajeError          String?                 @map("mensaje_error") @db.Text
+  creadoEn              DateTime                @default(now()) @map("creado_en")
+  procesadoEn           DateTime?               @map("procesado_en")
+
+  destinatario Usuario?                @relation(fields: [destinatarioUsuarioId], references: [id], onDelete: SetNull)
+  rolDestino   Rol?                    @relation(fields: [rolDestinoId], references: [id], onDelete: SetNull)
+  historial    HistorialNotificacion[]
+
+  @@index([estadoEnvio])
+  @@index([canal])
+  @@index([proximoIntento])
+  @@index([destinatarioUsuarioId])
+  @@map("eventos_notificacion")
+}
+
+// ------------------------------------------------------------
+// ConfiguracionNotificacion — define qué eventos generan
+// notificaciones y por qué canal, por rol o usuario específico.
+// rolDestinoId y usuarioDestinoId son nullable: permiten
+// configurar para un rol completo o un usuario concreto.
+// ADVERTENCIA: El índice único (tipoEvento, canal, rolDestinoId,
+// usuarioDestinoId) tiene columnas nullable. Prisma genera un
+// índice estándar que no garantiza unicidad cuando hay NULLs.
+// Reemplazar en migración por:
+//   CREATE UNIQUE INDEX ON configuracion_notificacion
+//     (tipo_evento, canal, rol_destino_id, usuario_destino_id)
+//     NULLS NOT DISTINCT;
+// ------------------------------------------------------------
+model ConfiguracionNotificacion {
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// Código del evento de negocio que dispara la notificación (ej: "pedido.validado", "orden.cancelada")
+  tipoEvento       String            @map("tipo_evento") @db.VarChar(100)
+  canal            CanalNotificacion
+  rolDestinoId     String?           @map("rol_destino_id") @db.Uuid
+  usuarioDestinoId String?           @map("usuario_destino_id") @db.Uuid
+  activo           Boolean           @default(true)
+  /// Template del título con placeholders (ej: "Pedido {{numeroPedido}} validado")
+  templateTitulo   String?           @map("template_titulo") @db.VarChar(200)
+  /// Template del cuerpo del mensaje con placeholders
+  templateCuerpo   String?           @map("template_cuerpo") @db.Text
+  creadoEn         DateTime          @default(now()) @map("creado_en")
+  actualizadoEn    DateTime          @updatedAt @map("actualizado_en")
+
+  rolDestino     Rol?     @relation(fields: [rolDestinoId], references: [id], onDelete: SetNull)
+  usuarioDestino Usuario? @relation(fields: [usuarioDestinoId], references: [id], onDelete: SetNull)
+
+  @@unique([tipoEvento, canal, rolDestinoId, usuarioDestinoId])
+  @@index([tipoEvento])
+  @@index([activo])
+  @@map("configuracion_notificacion")
+}
+
+// ------------------------------------------------------------
+// ConfiguracionDashboard — define qué widgets son visibles
+// para cada rol. No almacena datos operativos, solo configuración
+// de UI. El frontend consulta los widgets activos por rol
+// y los renderiza con sus parámetros.
+// ------------------------------------------------------------
+model ConfiguracionDashboard {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  rolId         String   @map("rol_id") @db.Uuid
+  /// Código único del widget (ej: "resumen_pedidos", "alertas_abastecimiento")
+  codigoWidget  String   @map("codigo_widget") @db.VarChar(100)
+  nombreWidget  String   @map("nombre_widget") @db.VarChar(150)
+  visible       Boolean  @default(true)
+  /// Posición en el grid del dashboard (orden de aparición)
+  posicion      Int      @default(0)
+  /// Configuración específica del widget (tamaño, filtros fijos, etc.)
+  configuracion Json?    @db.JsonB
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  rol Rol @relation(fields: [rolId], references: [id], onDelete: Cascade)
+
+  @@unique([rolId, codigoWidget])
+  @@index([rolId])
+  @@index([visible])
+  @@map("configuracion_dashboard")
+}
+
+// ------------------------------------------------------------
+// ConfiguracionMetrica — define qué métricas están activas
+// por rol. Las métricas V1.0 se calculan en tiempo real
+// desde datos existentes (no se cachean reportes).
+// configuracion JSONB estructura sugerida:
+//   {
+//     "filtros": ["sedeId", "fechaDesde"],
+//     "agrupacion": "dia",
+//     "umbralAlerta": 5
+//   }
+// ------------------------------------------------------------
+model ConfiguracionMetrica {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  rolId         String   @map("rol_id") @db.Uuid
+  /// Código único de la métrica (ej: "pedidos_activos", "tiempo_promedio_corte")
+  codigoMetrica String   @map("codigo_metrica") @db.VarChar(100)
+  nombreMetrica String   @map("nombre_metrica") @db.VarChar(150)
+  activo        Boolean  @default(true)
+  /// Estructura sugerida: { "filtros": ["sedeId","fechaDesde"], "agrupacion": "dia", "umbralAlerta": 5 }
+  configuracion Json?    @db.JsonB
+  creadoEn      DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  rol Rol @relation(fields: [rolId], references: [id], onDelete: Cascade)
+
+  @@unique([rolId, codigoMetrica])
+  @@index([rolId])
+  @@index([activo])
+  @@map("configuracion_metricas")
+}
+
+// ------------------------------------------------------------
+// HistorialNotificacion — registro inmutable de cada intento
+// de envío de un EventoNotificacion. Sin actualizadoEn
+// por ser tabla de auditoría de trazabilidad de envíos.
+// ------------------------------------------------------------
+model HistorialNotificacion {
+  id                   String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventoNotificacionId String                  @map("evento_notificacion_id") @db.Uuid
+  usuarioReceptorId    String?                 @map("usuario_receptor_id") @db.Uuid
+  canal                CanalNotificacion
+  estadoEnvio          EstadoEnvioNotificacion @map("estado_envio")
+  intentoNumero        Int                     @map("intento_numero")
+  /// Respuesta del canal externo o descripción del resultado
+  respuestaCanal       String?                 @map("respuesta_canal") @db.Text
+  mensajeError         String?                 @map("mensaje_error") @db.Text
+  creadoEn             DateTime                @default(now()) @map("creado_en")
+
+  eventoNotificacion EventoNotificacion @relation(fields: [eventoNotificacionId], references: [id], onDelete: Cascade)
+  usuarioReceptor    Usuario?           @relation(fields: [usuarioReceptorId], references: [id], onDelete: SetNull)
+
+  @@index([eventoNotificacionId])
+  @@index([canal])
+  @@index([estadoEnvio])
+  @@map("historial_notificaciones")
 }
