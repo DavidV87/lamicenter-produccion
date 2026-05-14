@@ -1095,6 +1095,7 @@ model Pedido {
   creadoPorUsuarioId    String    @map("creado_por_usuario_id") @db.Uuid
   estadoPedidoId        String    @map("estado_pedido_id") @db.Uuid
   observaciones         String?   @db.Text
+  fechaEntregaPrometida DateTime? @map("fecha_entrega_prometida")
   fechaListoDespacho    DateTime? @map("fecha_listo_despacho")
   fechaDespachoCompleto DateTime? @map("fecha_despacho_completo")
   metadata              Json?     @db.JsonB
