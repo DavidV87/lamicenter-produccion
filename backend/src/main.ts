@@ -1,7 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { AplicacionModulo } from './app.modulo';
 import { FiltroExcepcionesGlobal } from './common/filters/filtro-excepciones-global.filter';
+import { AuditoriaServicio } from './common/services/auditoria.servicio';
+import { AuditoriaInterceptor } from './common/interceptors/auditoria.interceptor';
 
 /**
  * Punto de entrada de la API Lamicenter.
@@ -15,6 +18,12 @@ async function iniciar(): Promise<void> {
 
   // Filtro global de excepciones — respuesta homogénea en formato RespuestaApi
   aplicacion.useGlobalFilters(new FiltroExcepcionesGlobal());
+
+  // Interceptor global de auditoría — registra automáticamente en auditoria_general.
+  // Se resuelven las instancias desde el contenedor DI para que PrismaServicio esté disponible.
+  const auditoriaServicio = aplicacion.get(AuditoriaServicio);
+  const reflector = aplicacion.get(Reflector);
+  aplicacion.useGlobalInterceptors(new AuditoriaInterceptor(auditoriaServicio, reflector));
 
   // Validación global de DTOs con class-validator
   aplicacion.useGlobalPipes(

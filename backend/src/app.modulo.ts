@@ -9,6 +9,7 @@ import configuracion from './config/configuracion';
 import { JwtAuthGuarda } from './modules/seguridad/auth/guards/jwt-auth.guarda';
 import { RolesGuarda } from './modules/seguridad/auth/guards/roles.guarda';
 import { PermisosGuarda } from './modules/seguridad/auth/guards/permisos.guarda';
+import { AuditoriaServicio } from './common/services/auditoria.servicio';
 
 // Módulos de dominio — se habilitarán bloque por bloque
 import { SeguridadModulo } from './modules/seguridad/seguridad.modulo';
@@ -47,6 +48,8 @@ import { PqrsModulo } from './modules/pqrs/pqrs.modulo';
   controllers: [AplicacionControlador],
   providers: [
     AplicacionServicio,
+    // Servicio de auditoría — disponible para inyección en módulos de dominio y en main.ts
+    AuditoriaServicio,
     // Guards globales — orden: JWT → Roles → Permisos
     { provide: APP_GUARD, useClass: JwtAuthGuarda },
     { provide: APP_GUARD, useClass: RolesGuarda },

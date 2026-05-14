@@ -35,6 +35,8 @@ enum TipoAccionAuditoria {
   REPROCESO
   DESPACHO
   PQRS
+  ELIMINAR
+  CONSULTAR
   OTRO
 }
 

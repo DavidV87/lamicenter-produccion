@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "PowerShell(Get-Process *)",
+      "PowerShell(psql *)"
+    ]
+  }
+}
