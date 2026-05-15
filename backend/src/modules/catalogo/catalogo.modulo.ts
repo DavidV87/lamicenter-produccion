@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
+import { CatalogoControlador } from './catalogo.controlador';
+import { CatalogoServicio } from './catalogo.servicio';
 
-/**
- * Módulo Catálogo — productos, materiales, referencias y listas de precios.
- * Implementación pendiente según orden de bloques del proyecto.
- */
-@Module({})
+@Module({
+  controllers: [CatalogoControlador],
+  providers:   [CatalogoServicio],
+  exports:     [CatalogoServicio],
+})
 export class CatalogoModulo {}
