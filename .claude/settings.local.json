@@ -10,7 +10,11 @@
       "Bash(python -c \"import sys,json; r=json.load\\(sys.stdin\\); [print\\(p['id'], p['estado']['codigo']\\) for p in r.get\\('datos',{}\\).get\\('datos',[]\\)]\")",
       "Bash(python -c \"import sys,json; r=json.load\\(sys.stdin\\); d=r.get\\('datos',[]\\); [print\\(s['id'],s['nombre']\\) for s in d[:3]]\")",
       "Bash(node -e ' *)",
-      "Bash(python -c \"import sys,json; r=json.load\\(sys.stdin\\); print\\('exito:', r['exito'], '| nueva_asig:', r.get\\('datos',{}\\).get\\('id','?'\\)[:8]\\)\")"
+      "Bash(python -c \"import sys,json; r=json.load\\(sys.stdin\\); print\\('exito:', r['exito'], '| nueva_asig:', r.get\\('datos',{}\\).get\\('id','?'\\)[:8]\\)\")",
+      "Bash(curl -s http://localhost:3000/api/v1/health)",
+      "Bash(python -c \"import sys,json; r=json.load\\(sys.stdin\\); print\\(r\\)\")",
+      "Bash(node *)",
+      "Bash(python -c \"import sys,json; r=json.load\\(sys.stdin\\); print\\('exito:', r['exito'], '| msg:', r['mensaje']\\)\")"
     ]
   }
 }
