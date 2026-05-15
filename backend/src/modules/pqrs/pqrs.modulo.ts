@@ -1,8 +1,12 @@
 import { Module } from '@nestjs/common';
+import { PqrsControlador } from './pqrs.controlador';
+import { PqrsServicio } from './pqrs.servicio';
+import { MotorEstadosModulo } from '../../common/motor-estados/motor-estados.modulo';
 
-/**
- * Módulo PQRS — peticiones, quejas, reclamos y sugerencias de clientes.
- * Implementación pendiente según orden de bloques del proyecto.
- */
-@Module({})
+@Module({
+  imports:     [MotorEstadosModulo],
+  controllers: [PqrsControlador],
+  providers:   [PqrsServicio],
+  exports:     [PqrsServicio],
+})
 export class PqrsModulo {}
