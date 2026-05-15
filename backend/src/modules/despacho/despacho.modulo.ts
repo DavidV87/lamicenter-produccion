@@ -1,8 +1,12 @@
 import { Module } from '@nestjs/common';
+import { DespachoControlador } from './despacho.controlador';
+import { DespachoServicio } from './despacho.servicio';
+import { MotorEstadosModulo } from '../../common/motor-estados/motor-estados.modulo';
 
-/**
- * Módulo Despacho — salida de producto terminado, guías y trazabilidad de entrega.
- * Implementación pendiente según orden de bloques del proyecto.
- */
-@Module({})
+@Module({
+  imports:     [MotorEstadosModulo],
+  controllers: [DespachoControlador],
+  providers:   [DespachoServicio],
+  exports:     [DespachoServicio],
+})
 export class DespachoModulo {}
