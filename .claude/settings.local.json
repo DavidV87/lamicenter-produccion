@@ -33,7 +33,8 @@
       "PowerShell(New-Item *)",
       "Bash(npm --version)",
       "PowerShell(npm run *)",
-      "PowerShell(Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c cd C:\\\\Proyectos\\\\lamicenter-produccion\\\\backend && npm run start:dev > backend-tmp.log 2>&1\" -WindowStyle Hidden; Write-Host \"Backend iniciando...\")"
+      "PowerShell(Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c cd C:\\\\Proyectos\\\\lamicenter-produccion\\\\backend && npm run start:dev > backend-tmp.log 2>&1\" -WindowStyle Hidden; Write-Host \"Backend iniciando...\")",
+      "Bash(python -m json.tool)"
     ]
   }
 }
