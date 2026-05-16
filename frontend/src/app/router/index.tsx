@@ -13,6 +13,9 @@ import { ItemsPage }        from '@/features/catalogo/pages/ItemsPage';
 import { ProveedoresPage }  from '@/features/catalogo/pages/ProveedoresPage';
 import { MaquinasPage }     from '@/features/catalogo/pages/MaquinasPage';
 import { UbicacionesPage }  from '@/features/catalogo/pages/UbicacionesPage';
+import { PedidosPage }      from '@/features/pedidos/pages/PedidosPage';
+import { NuevoPedidoPage }  from '@/features/pedidos/pages/NuevoPedidoPage';
+import { PedidoDetallePage } from '@/features/pedidos/pages/PedidoDetallePage';
 
 function RaizRedireccion() {
   const token = useAuthStore((s) => s.accessToken);
@@ -46,8 +49,16 @@ export function Enrutador() {
             <Route path="/catalogo/ubicaciones"    element={<UbicacionesPage />} />
           </Route>
 
+          {/* Pedidos */}
+          <Route element={<RutaConPermiso permiso="pedidos.ver" />}>
+            <Route path="/pedidos"        element={<PedidosPage />} />
+            <Route path="/pedidos/:id"    element={<PedidoDetallePage />} />
+          </Route>
+          <Route element={<RutaConPermiso permiso="pedidos.crear" />}>
+            <Route path="/pedidos/nuevo" element={<NuevoPedidoPage />} />
+          </Route>
+
           {/* Módulos en construcción — solo JWT por ahora */}
-          <Route path="/pedidos"        element={<ModuloEnConstruccion nombre="Pedidos" />} />
           <Route path="/produccion"     element={<ModuloEnConstruccion nombre="Producción" />} />
           <Route path="/abastecimiento" element={<ModuloEnConstruccion nombre="Abastecimiento" />} />
           <Route path="/despacho"       element={<ModuloEnConstruccion nombre="Despacho" />} />
