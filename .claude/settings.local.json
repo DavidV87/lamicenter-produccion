@@ -30,7 +30,10 @@
       "PowerShell(Start-Sleep -Seconds 3; $login = Invoke-RestMethod -Uri \"http://localhost:3000/api/v1/auth/login\" -Method POST -ContentType \"application/json\" -Body '{\"email\":\"gerente@lamicenter.com\",\"password\":\"Admin1234!\"}'; $token = $login.datos.accessToken; Write-Host \"Token obtenido: $\\($token.Substring\\(0,20\\)\\)...\")",
       "PowerShell($rolGerente = \"3b9b56dd-6951-4853-be40-5980a5d86fa0\"; $env:DATABASE_URL = \\(Get-Content \"C:\\\\Proyectos\\\\lamicenter-produccion\\\\backend\\\\.env\" | Select-String \"DATABASE_URL\" | ForEach-Object { $_.ToString\\(\\).Split\\(\"=\",2\\)[1] }\\); Write-Host \"DB: $env:DATABASE_URL\")",
       "Bash(npx prisma *)",
-      "PowerShell(New-Item *)"
+      "PowerShell(New-Item *)",
+      "Bash(npm --version)",
+      "PowerShell(npm run *)",
+      "PowerShell(Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c cd C:\\\\Proyectos\\\\lamicenter-produccion\\\\backend && npm run start:dev > backend-tmp.log 2>&1\" -WindowStyle Hidden; Write-Host \"Backend iniciando...\")"
     ]
   }
 }
