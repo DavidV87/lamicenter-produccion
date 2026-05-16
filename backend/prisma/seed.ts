@@ -60,6 +60,9 @@ const MODULO_PERMISO = [
   'despacho',
   'notificaciones',
   'pqrs',
+  'dashboard',
+  'reportes',
+  'auditoria',
 ] as const;
 
 /** Acciones disponibles por módulo */

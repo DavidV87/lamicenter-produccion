@@ -21,6 +21,7 @@ import { AbastecimientoModulo } from './modules/abastecimiento/abastecimiento.mo
 import { DespachoModulo } from './modules/despacho/despacho.modulo';
 import { NotificacionesModulo } from './modules/notificaciones/notificaciones.modulo';
 import { PqrsModulo } from './modules/pqrs/pqrs.modulo';
+import { ReportesModulo } from './modules/reportes/reportes.modulo';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { PqrsModulo } from './modules/pqrs/pqrs.modulo';
     DespachoModulo,
     NotificacionesModulo,
     PqrsModulo,
+    ReportesModulo,
   ],
   controllers: [AplicacionControlador],
   providers: [
