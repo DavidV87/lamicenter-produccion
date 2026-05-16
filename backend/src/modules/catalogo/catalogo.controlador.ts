@@ -230,6 +230,24 @@ export class CatalogoControlador {
   }
 
   // ===========================================================================
+  // REFERENCIAS (solo lectura)
+  // ===========================================================================
+
+  @Get('tipos-item')
+  @Permisos('catalogo.ver')
+  async obtenerTiposItem(): Promise<RespuestaApi<unknown>> {
+    const tipos = await this.catalogoServicio.obtenerTiposItem();
+    return respuestaExitosa(tipos, 'Tipos de ítem obtenidos exitosamente');
+  }
+
+  @Get('sedes')
+  @Permisos('catalogo.ver')
+  async obtenerSedes(): Promise<RespuestaApi<unknown>> {
+    const sedes = await this.catalogoServicio.obtenerSedes();
+    return respuestaExitosa(sedes, 'Sedes obtenidas exitosamente');
+  }
+
+  // ===========================================================================
   // UBICACIONES
   // ===========================================================================
 

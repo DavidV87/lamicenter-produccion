@@ -1,30 +1,30 @@
+import { useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Textarea } from '@/shared/components/ui/textarea';
 import { Switch } from '@/shared/components/ui/switch';
+import { Skeleton } from '@/shared/components/ui/skeleton';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/shared/components/ui/select';
+import { catalogoServicio } from '../../services/catalogo.servicio';
 import type { Item, CrearItemPayload, UnidadMedida } from '../../types/catalogo.types';
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 const esquema = z.object({
-  tipoItemId:             z.string().regex(UUID_RE, 'Debe ser un UUID válido'),
-  codigo:                 z.string().min(1, 'Requerido').max(80),
-  nombre:                 z.string().min(1, 'Requerido').max(200),
-  unidadMedida:           z.enum(['METRO_CUADRADO','METRO_LINEAL','UNIDAD','HOJA','KILOGRAMO','LITRO','METRO_CUBICO']),
-  descripcion:            z.string().optional().or(z.literal('')),
-  precioVentaReferencia:  z.string().optional().or(z.literal('')),
-  costoReferencia:        z.string().optional().or(z.literal('')),
-  controlaInventario:     z.boolean().default(true),
-  requiereCorte:          z.boolean().default(false),
-  permiteFraccion:        z.boolean().default(false),
+  tipoItemId:            z.string().min(1, 'Selecciona un tipo de ítem'),
+  codigo:                z.string().min(1, 'Requerido').max(80),
+  nombre:                z.string().min(1, 'Requerido').max(200),
+  unidadMedida:          z.enum(['METRO_CUADRADO','METRO_LINEAL','UNIDAD','HOJA','KILOGRAMO','LITRO','METRO_CUBICO']),
+  descripcion:           z.string().optional().or(z.literal('')),
+  precioVentaReferencia: z.string().optional().or(z.literal('')),
+  costoReferencia:       z.string().optional().or(z.literal('')),
+  controlaInventario:    z.boolean().default(true),
+  requiereCorte:         z.boolean().default(false),
+  permiteFraccion:       z.boolean().default(false),
 });
 
 type Campos = z.infer<typeof esquema>;
@@ -46,6 +46,12 @@ const ETIQUETAS_UNIDAD: Record<string, string> = {
 };
 
 export function ItemForm({ inicial, onSubmit, cargando }: Props) {
+  const { data: tiposItem, isLoading: cargandoTipos } = useQuery({
+    queryKey: ['tipos-item'],
+    queryFn:  () => catalogoServicio.obtenerTiposItem(),
+    staleTime: 5 * 60_000,
+  });
+
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<Campos>({
     resolver: zodResolver(esquema),
     defaultValues: {
@@ -61,7 +67,8 @@ export function ItemForm({ inicial, onSubmit, cargando }: Props) {
     },
   });
 
-  const unidad = watch('unidadMedida');
+  const tipoItemId  = watch('tipoItemId');
+  const unidad      = watch('unidadMedida');
   const controlaInv = watch('controlaInventario');
   const requCorte   = watch('requiereCorte');
   const permFracc   = watch('permiteFraccion');
@@ -88,21 +95,30 @@ export function ItemForm({ inicial, onSubmit, cargando }: Props) {
 
   return (
     <form onSubmit={handleSubmit(enviar)} className="grid gap-4">
-
-      {/* Aviso sobre tipoItemId */}
-      <div className="flex gap-2 rounded-md border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-800">
-        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-        <span>
-          El endpoint <code>/catalogo/tipos-item</code> no está disponible.
-          Ingresa el UUID del tipo de ítem manualmente (consúltalo en la base de datos o con el administrador).
-        </span>
-      </div>
-
       <div className="grid grid-cols-2 gap-4">
 
         <div className="col-span-2 space-y-1">
-          <Label>ID del tipo de ítem (UUID) *</Label>
-          <Input {...register('tipoItemId')} placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" className="font-mono text-xs" />
+          <Label>Tipo de ítem *</Label>
+          {cargandoTipos ? (
+            <Skeleton className="h-9 w-full" />
+          ) : (
+            <Select
+              value={tipoItemId}
+              onValueChange={(v) => setValue('tipoItemId', v, { shouldValidate: true })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona un tipo…" />
+              </SelectTrigger>
+              <SelectContent>
+                {tiposItem?.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.nombre}
+                    <span className="ml-1 text-xs text-muted-foreground">({t.comportamiento})</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           {errors.tipoItemId && <p className="text-xs text-destructive">{errors.tipoItemId.message}</p>}
         </div>
 
@@ -162,7 +178,7 @@ export function ItemForm({ inicial, onSubmit, cargando }: Props) {
 
       </div>
 
-      <Button type="submit" disabled={cargando} className="w-full">
+      <Button type="submit" disabled={cargando || cargandoTipos} className="w-full">
         {cargando ? 'Guardando…' : inicial ? 'Actualizar ítem' : 'Crear ítem'}
       </Button>
     </form>

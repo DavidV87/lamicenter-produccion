@@ -1,17 +1,20 @@
+import { useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Textarea } from '@/shared/components/ui/textarea';
+import { Skeleton } from '@/shared/components/ui/skeleton';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/shared/components/ui/select';
+import { catalogoServicio } from '../../services/catalogo.servicio';
 import type { Ubicacion, CrearUbicacionPayload } from '../../types/catalogo.types';
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 const esquema = z.object({
-  sedeId:      z.string().regex(UUID_RE, 'Debe ser un UUID válido'),
+  sedeId:      z.string().min(1, 'Selecciona una sede'),
   nombre:      z.string().min(1, 'Requerido').max(150),
   codigo:      z.string().min(1, 'Requerido').max(50),
   descripcion: z.string().optional().or(z.literal('')),
@@ -26,7 +29,13 @@ interface Props {
 }
 
 export function UbicacionForm({ inicial, onSubmit, cargando }: Props) {
-  const { register, formState: { errors }, handleSubmit } = useForm<Campos>({
+  const { data: sedes, isLoading: cargandoSedes } = useQuery({
+    queryKey: ['sedes'],
+    queryFn:  () => catalogoServicio.obtenerSedes(),
+    staleTime: 5 * 60_000,
+  });
+
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<Campos>({
     resolver: zodResolver(esquema),
     defaultValues: {
       sedeId:      inicial?.sede?.id ?? '',
@@ -35,6 +44,8 @@ export function UbicacionForm({ inicial, onSubmit, cargando }: Props) {
       descripcion: '',
     },
   });
+
+  const sedeId = watch('sedeId');
 
   function enviar(campos: Campos) {
     const payload: CrearUbicacionPayload = {
@@ -48,23 +59,30 @@ export function UbicacionForm({ inicial, onSubmit, cargando }: Props) {
 
   return (
     <form onSubmit={handleSubmit(enviar)} className="grid gap-4">
-
-      <div className="flex gap-2 rounded-md border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-800">
-        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-        <span>
-          El endpoint <code>/catalogo/sedes</code> no está disponible.
-          Ingresa el UUID de la sede manualmente.
-          {inicial?.sede && (
-            <> Sede actual: <strong>{inicial.sede.nombre}</strong> ({inicial.sede.id})</>
-          )}
-        </span>
-      </div>
-
       <div className="grid grid-cols-2 gap-4">
 
         <div className="col-span-2 space-y-1">
-          <Label>ID de sede (UUID) *</Label>
-          <Input {...register('sedeId')} placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" className="font-mono text-xs" />
+          <Label>Sede *</Label>
+          {cargandoSedes ? (
+            <Skeleton className="h-9 w-full" />
+          ) : (
+            <Select
+              value={sedeId}
+              onValueChange={(v) => setValue('sedeId', v, { shouldValidate: true })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona una sede…" />
+              </SelectTrigger>
+              <SelectContent>
+                {sedes?.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.nombre}
+                    <span className="ml-1 text-xs text-muted-foreground">({s.codigo})</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           {errors.sedeId && <p className="text-xs text-destructive">{errors.sedeId.message}</p>}
         </div>
 
@@ -87,7 +105,7 @@ export function UbicacionForm({ inicial, onSubmit, cargando }: Props) {
 
       </div>
 
-      <Button type="submit" disabled={cargando} className="w-full">
+      <Button type="submit" disabled={cargando || cargandoSedes} className="w-full">
         {cargando ? 'Guardando…' : inicial ? 'Actualizar ubicación' : 'Crear ubicación'}
       </Button>
     </form>

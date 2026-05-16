@@ -4,7 +4,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, TipoAccionAuditoria } from '@prisma/client';
+import { Prisma, TipoAccionAuditoria, TipoItem, Sede } from '@prisma/client';
 import { PrismaServicio } from '../../prisma/prisma.servicio';
 import { UsuarioJwt } from '../seguridad/auth/types/usuario-jwt.interfaz';
 
@@ -766,6 +766,26 @@ export class CatalogoServicio {
       creadoEn:     ubicacion.creadoEn,
       actualizadoEn: ubicacion.actualizadoEn,
     };
+  }
+
+  // ===========================================================================
+  // REFERENCIAS (solo lectura)
+  // ===========================================================================
+
+  async obtenerTiposItem(): Promise<Pick<TipoItem, 'id' | 'nombre' | 'descripcion' | 'comportamiento' | 'activo'>[]> {
+    return this.prisma.tipoItem.findMany({
+      where:   { activo: true },
+      orderBy: { nombre: 'asc' },
+      select:  { id: true, nombre: true, descripcion: true, comportamiento: true, activo: true },
+    });
+  }
+
+  async obtenerSedes(): Promise<Pick<Sede, 'id' | 'nombre' | 'codigo' | 'direccion'>[]> {
+    return this.prisma.sede.findMany({
+      where:   { activo: true },
+      orderBy: { nombre: 'asc' },
+      select:  { id: true, nombre: true, codigo: true, direccion: true },
+    });
   }
 
   async actualizarUbicacion(id: string, dto: ActualizarUbicacionDto, usuario: UsuarioJwt): Promise<UbicacionDetalle> {

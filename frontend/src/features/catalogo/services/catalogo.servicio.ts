@@ -3,6 +3,8 @@ import type { RespuestaApi } from '@/shared/types';
 import type {
   RespuestaPaginada,
   FiltrosPaginados,
+  TipoItem,
+  Sede,
   Cliente, CrearClientePayload, ActualizarClientePayload,
   Item, CrearItemPayload, ActualizarItemPayload,
   Proveedor, CrearProveedorPayload, ActualizarProveedorPayload,
@@ -22,6 +24,19 @@ function construirParams(filtros: FiltrosPaginados): string {
 // ── Clientes ──────────────────────────────────────────────────────────────────
 
 export const catalogoServicio = {
+  async obtenerTiposItem(): Promise<TipoItem[]> {
+    const { data } = await clienteApi.get<RespuestaApi<TipoItem[]>>('/catalogo/tipos-item');
+    if (!data.exito || !data.datos) throw new Error(data.mensaje);
+    return data.datos;
+  },
+
+  async obtenerSedes(): Promise<Sede[]> {
+    const { data } = await clienteApi.get<RespuestaApi<Sede[]>>('/catalogo/sedes');
+    if (!data.exito || !data.datos) throw new Error(data.mensaje);
+    return data.datos;
+  },
+
+
   async listarClientes(filtros: FiltrosPaginados = {}): Promise<RespuestaPaginada<Cliente>> {
     const { data } = await clienteApi.get<RespuestaApi<RespuestaPaginada<Cliente>>>(
       `/catalogo/clientes?${construirParams(filtros)}`,

@@ -8,6 +8,21 @@ export interface RespuestaPaginada<T> {
   totalPaginas: number;
 }
 
+// ── Tipos de referencia (endpoints de solo lectura) ──────────────────────────
+
+export interface TipoItem {
+  id: string;
+  nombre: string;
+  comportamiento: string;
+  activo: boolean;
+}
+
+export interface Sede {
+  id: string;
+  nombre: string;
+  codigo: string;
+}
+
 // ── Enums (espejo de Prisma) ──────────────────────────────────────────────────
 
 export type TipoIdentificacion = 'NIT' | 'CC' | 'CE' | 'PAS' | 'OTRO';
