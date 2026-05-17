@@ -17,7 +17,7 @@ const MENU = [
   { a: '/produccion/ordenes', etiqueta: 'Producción', Icono: Factory         },
   { a: '/abastecimiento/requerimientos', etiqueta: 'Abastecimiento', Icono: ShoppingCart },
   { a: '/despacho/despachos', etiqueta: 'Despacho',    Icono: Truck           },
-  { a: '/pqrs',           etiqueta: 'PQRS',           Icono: MessageSquare   },
+  { a: '/pqrs/listado',   etiqueta: 'PQRS',           Icono: MessageSquare   },
   { a: '/catalogo',       etiqueta: 'Catálogo',       Icono: BookOpen        },
   { a: '/reportes',       etiqueta: 'Reportes',       Icono: BarChart2       },
 ];

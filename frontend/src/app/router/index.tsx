@@ -31,6 +31,10 @@ import { DespachosPage }            from '@/features/despacho/pages/DespachosPag
 import { NuevoDespachoPage }        from '@/features/despacho/pages/NuevoDespachoPage';
 import { DespachoDetallePage }      from '@/features/despacho/pages/DespachoDetallePage';
 import { UbicacionPedidoPage }      from '@/features/despacho/pages/UbicacionPedidoPage';
+import { PqrsPage }         from '@/features/pqrs/pages/PqrsPage';
+import { PqrsListadoPage }  from '@/features/pqrs/pages/PqrsListadoPage';
+import { NuevaPqrsPage }    from '@/features/pqrs/pages/NuevaPqrsPage';
+import { PqrsDetallePage }  from '@/features/pqrs/pages/PqrsDetallePage';
 
 function RaizRedireccion() {
   const token = useAuthStore((s) => s.accessToken);
@@ -106,7 +110,15 @@ export function Enrutador() {
           <Route element={<RutaConPermiso permiso="despacho.crear" />}>
             <Route path="/despacho/despachos/nuevo" element={<NuevoDespachoPage />} />
           </Route>
-          <Route path="/pqrs"     element={<ModuloEnConstruccion nombre="PQRS" />} />
+          {/* PQRS */}
+          <Route path="/pqrs" element={<PqrsPage />} />
+          <Route element={<RutaConPermiso permiso="pqrs.ver" />}>
+            <Route path="/pqrs/listado" element={<PqrsListadoPage />} />
+            <Route path="/pqrs/:id"     element={<PqrsDetallePage />} />
+          </Route>
+          <Route element={<RutaConPermiso permiso="pqrs.crear" />}>
+            <Route path="/pqrs/nueva" element={<NuevaPqrsPage />} />
+          </Route>
           <Route path="/reportes" element={<ModuloEnConstruccion nombre="Reportes" />} />
 
         </Route>
