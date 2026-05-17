@@ -122,6 +122,7 @@ export interface CrearSolicitudCompraPayload {
 // ── Filtros ───────────────────────────────────────────────────────────────────
 
 export interface FiltrosRequerimientos {
+  busqueda?: string;
   pagina?: number;
   limite?: number;
 }

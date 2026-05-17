@@ -17,6 +17,7 @@ import type {
 function construirParams(filtros: FiltrosOrdenesProduccion): string {
   const params = new URLSearchParams();
   if (filtros.estadoOrdenId) params.set('estadoOrdenId', filtros.estadoOrdenId);
+  if (filtros.busqueda)      params.set('busqueda',      filtros.busqueda);
   if (filtros.pagina !== undefined) params.set('pagina', String(filtros.pagina));
   if (filtros.limite !== undefined) params.set('limite', String(filtros.limite));
   return params.toString();

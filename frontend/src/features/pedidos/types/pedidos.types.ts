@@ -137,6 +137,7 @@ export interface ValidarPedidoPayload {
 export interface FiltrosPedidos {
   clienteId?: string;
   estadoPedidoId?: string;
+  busqueda?: string;
   pagina?: number;
   limite?: number;
 }

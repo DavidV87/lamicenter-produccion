@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
+import { BuscadorEntidad } from '@/shared/components/BuscadorEntidad';
 import { TablaOrdenesProduccion } from '../components/TablaOrdenesProduccion';
 import { useOrdenesProduccion } from '../hooks/useProduccion';
 
@@ -31,8 +32,9 @@ function Paginador({
 }
 
 export function OrdenesProduccionPage() {
-  const [pagina, setPagina] = useState(1);
-  const { data, isLoading, isError } = useOrdenesProduccion({ pagina, limite: LIMITE });
+  const [pagina, setPagina]     = useState(1);
+  const [busqueda, setBusqueda] = useState('');
+  const { data, isLoading, isError } = useOrdenesProduccion({ pagina, limite: LIMITE, busqueda: busqueda || undefined });
 
   return (
     <div className="space-y-4">
@@ -47,6 +49,11 @@ export function OrdenesProduccionPage() {
           </Link>
         </Button>
       </div>
+
+      <BuscadorEntidad
+        placeholder="Buscar orden…"
+        onBuscar={(t) => { setBusqueda(t); setPagina(1); }}
+      />
 
       <TablaOrdenesProduccion
         ordenes={data?.datos ?? []}

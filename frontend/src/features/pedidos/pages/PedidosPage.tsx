@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
+import { BuscadorEntidad } from '@/shared/components/BuscadorEntidad';
 import { TablaPedidos } from '../components/TablaPedidos';
 import { usePedidos } from '../hooks/usePedidos';
 
@@ -31,9 +32,10 @@ function PaginadorPedidos({
 }
 
 export function PedidosPage() {
-  const [pagina, setPagina] = useState(1);
+  const [pagina, setPagina]     = useState(1);
+  const [busqueda, setBusqueda] = useState('');
 
-  const { data, isLoading, isError } = usePedidos({ pagina, limite: LIMITE });
+  const { data, isLoading, isError } = usePedidos({ pagina, limite: LIMITE, busqueda: busqueda || undefined });
 
   return (
     <div className="space-y-4">
@@ -48,6 +50,11 @@ export function PedidosPage() {
           </Link>
         </Button>
       </div>
+
+      <BuscadorEntidad
+        placeholder="Buscar pedido…"
+        onBuscar={(t) => { setBusqueda(t); setPagina(1); }}
+      />
 
       <TablaPedidos
         pedidos={data?.datos ?? []}

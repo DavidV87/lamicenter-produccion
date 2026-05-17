@@ -153,6 +153,7 @@ export interface CrearEventoOperativoPayload {
 
 export interface FiltrosOrdenesProduccion {
   estadoOrdenId?: string;
+  busqueda?: string;
   pagina?: number;
   limite?: number;
 }

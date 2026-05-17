@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
+import { BuscadorEntidad } from '@/shared/components/BuscadorEntidad';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { TablaRequerimientos } from '../components/TablaRequerimientos';
 import { useRequerimientos } from '../hooks/useAbastecimiento';
@@ -32,10 +33,11 @@ function Paginador({
 }
 
 export function RequerimientosPage() {
-  const [pagina, setPagina] = useState(1);
+  const [pagina, setPagina]     = useState(1);
+  const [busqueda, setBusqueda] = useState('');
   const tienePermiso = useAuthStore((s) => s.tienePermiso);
 
-  const { data, isLoading, isError } = useRequerimientos({ pagina, limite: LIMITE });
+  const { data, isLoading, isError } = useRequerimientos({ pagina, limite: LIMITE, busqueda: busqueda || undefined });
 
   return (
     <div className="space-y-4">
@@ -52,6 +54,11 @@ export function RequerimientosPage() {
           </Button>
         )}
       </div>
+
+      <BuscadorEntidad
+        placeholder="Buscar por ítem u observaciones…"
+        onBuscar={(t) => { setBusqueda(t); setPagina(1); }}
+      />
 
       <TablaRequerimientos
         requerimientos={data?.datos ?? []}

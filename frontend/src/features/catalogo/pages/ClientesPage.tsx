@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Plus, Pencil, ToggleLeft, ToggleRight, Search } from 'lucide-react';
+import { Plus, Pencil, ToggleLeft, ToggleRight } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
-import { Input } from '@/shared/components/ui/input';
 import { Badge } from '@/shared/components/ui/badge';
+import { BuscadorEntidad } from '@/shared/components/BuscadorEntidad';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/shared/components/ui/dialog';
@@ -61,15 +61,10 @@ export function ClientesPage() {
 
       {/* Filtros */}
       <div className="flex gap-2">
-        <div className="relative max-w-xs flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nombre o NIT…"
-            className="pl-8"
-            value={busqueda}
-            onChange={(e) => { setBusqueda(e.target.value); setPagina(1); }}
-          />
-        </div>
+        <BuscadorEntidad
+          placeholder="Buscar por nombre o NIT…"
+          onBuscar={(t) => { setBusqueda(t); setPagina(1); }}
+        />
         <Button
           variant={soloActivos === true ? 'default' : 'outline'}
           size="sm"

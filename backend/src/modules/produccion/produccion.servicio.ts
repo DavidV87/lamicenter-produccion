@@ -130,6 +130,12 @@ export class ProduccionServicio {
     if (query.pedidoId)       donde.pedidoId       = query.pedidoId;
     if (query.sedeProduccionId) donde.sedeProduccionId = query.sedeProduccionId;
     if (query.estadoOrdenId)  donde.estadoOrdenId  = query.estadoOrdenId;
+    if (query.busqueda) {
+      donde.OR = [
+        { observaciones: { contains: query.busqueda, mode: 'insensitive' } },
+        { pedido: { observaciones: { contains: query.busqueda, mode: 'insensitive' } } },
+      ];
+    }
 
     const [registros, total] = await this.prisma.$transaction([
       this.prisma.ordenProduccion.findMany({

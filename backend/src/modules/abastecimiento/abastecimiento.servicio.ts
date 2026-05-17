@@ -152,6 +152,12 @@ export class AbastecimientoServicio {
     if (query.pedidoId)        donde.pedidoId           = query.pedidoId;
     if (query.ordenProduccionId) donde.ordenProduccionId = query.ordenProduccionId;
     if (query.estadoId)        donde.estadoRequerimientoId = query.estadoId;
+    if (query.busqueda) {
+      donde.OR = [
+        { observaciones: { contains: query.busqueda, mode: 'insensitive' } },
+        { item: { nombre: { contains: query.busqueda, mode: 'insensitive' } } },
+      ];
+    }
 
     const [registros, total] = await this.prisma.$transaction([
       this.prisma.requerimientoMaterial.findMany({

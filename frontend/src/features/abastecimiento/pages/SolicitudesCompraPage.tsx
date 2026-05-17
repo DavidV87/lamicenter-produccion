@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
+import { BuscadorEntidad } from '@/shared/components/BuscadorEntidad';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { TablaSolicitudesCompra } from '../components/TablaSolicitudesCompra';
 import { useSolicitudesCompra } from '../hooks/useAbastecimiento';
@@ -32,9 +33,12 @@ function Paginador({
 }
 
 export function SolicitudesCompraPage() {
-  const [pagina, setPagina] = useState(1);
+  const [pagina, setPagina]     = useState(1);
+  // busqueda reservado para cuando el backend del endpoint /solicitudes-compra soporte el parámetro
+  const [busqueda, setBusqueda] = useState('');
   const tienePermiso = useAuthStore((s) => s.tienePermiso);
 
+  void busqueda; // usado por BuscadorEntidad; se conectará al hook cuando el DTO soporte busqueda
   const { data, isLoading, isError } = useSolicitudesCompra({ pagina, limite: LIMITE });
 
   return (
@@ -52,6 +56,11 @@ export function SolicitudesCompraPage() {
           </Button>
         )}
       </div>
+
+      <BuscadorEntidad
+        placeholder="Buscar solicitud…"
+        onBuscar={(t) => { setBusqueda(t); setPagina(1); }}
+      />
 
       <TablaSolicitudesCompra
         solicitudes={data?.datos ?? []}

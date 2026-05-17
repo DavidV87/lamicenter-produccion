@@ -15,6 +15,7 @@ function construirParams(filtros: FiltrosRequerimientos | FiltrosSolicitudes): s
   const p = new URLSearchParams();
   if (filtros.pagina !== undefined) p.set('pagina', String(filtros.pagina));
   if (filtros.limite !== undefined) p.set('limite', String(filtros.limite));
+  if ('busqueda' in filtros && filtros.busqueda) p.set('busqueda', filtros.busqueda);
   return p.toString();
 }
 

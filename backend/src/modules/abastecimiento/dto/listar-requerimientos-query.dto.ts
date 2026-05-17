@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
 
 /** Query params para listar requerimientos de material con filtros y paginación. */
 export class ListarRequerimientosQueryDto {
@@ -36,4 +36,9 @@ export class ListarRequerimientosQueryDto {
   @IsOptional()
   @IsUUID()
   estadoId?: string;
+
+  /** Búsqueda libre por observaciones o nombre del ítem. */
+  @IsOptional()
+  @IsString()
+  busqueda?: string;
 }

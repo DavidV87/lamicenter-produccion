@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
 
 /** Query params para listar órdenes de producción con filtros y paginación. */
 export class ListarOrdenesQueryDto {
@@ -30,4 +30,9 @@ export class ListarOrdenesQueryDto {
   @IsOptional()
   @IsUUID()
   estadoOrdenId?: string;
+
+  /** Búsqueda libre por observaciones o consecutivo del pedido. */
+  @IsOptional()
+  @IsString()
+  busqueda?: string;
 }

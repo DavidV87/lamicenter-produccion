@@ -254,6 +254,13 @@ export class CatalogoControlador {
     return respuestaExitosa(etapas, 'Etapas de producción obtenidas exitosamente');
   }
 
+  @Get('tipos-novedad')
+  @Permisos('catalogo.ver')
+  async obtenerTiposNovedad(): Promise<RespuestaApi<unknown>> {
+    const tipos = await this.catalogoServicio.obtenerTiposNovedad();
+    return respuestaExitosa(tipos, 'Tipos de novedad obtenidos exitosamente');
+  }
+
   @Get('tipos-validacion-despacho')
   @Permisos('catalogo.ver')
   async obtenerTiposValidacionDespacho(): Promise<RespuestaApi<unknown>> {

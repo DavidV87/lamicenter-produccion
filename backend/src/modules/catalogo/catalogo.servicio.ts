@@ -796,6 +796,14 @@ export class CatalogoServicio {
     });
   }
 
+  async obtenerTiposNovedad() {
+    return this.prisma.tipoNovedad.findMany({
+      where:   { activo: true },
+      orderBy: { nombre: 'asc' },
+      select:  { id: true, nombre: true, descripcion: true, aplicaA: true, activo: true },
+    });
+  }
+
   async obtenerTiposValidacionDespacho() {
     return this.prisma.tipoValidacionDespacho.findMany({
       where:   { activo: true },
