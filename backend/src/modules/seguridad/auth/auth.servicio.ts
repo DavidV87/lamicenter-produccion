@@ -185,6 +185,27 @@ export class AuthServicio {
     });
   }
 
+  /**
+   * Devuelve todos los usuarios activos con su rol para poblar selects en el frontend.
+   * No incluye datos sensibles (passwordHash, refreshToken, etc.).
+   */
+  async listarUsuariosActivos(): Promise<
+    { id: string; nombre: string; email: string; rolId: string; rol: { nombre: string }; sedeId: string }[]
+  > {
+    return this.prisma.usuario.findMany({
+      where: { activo: true },
+      select: {
+        id: true,
+        nombre: true,
+        email: true,
+        rolId: true,
+        rol: { select: { nombre: true } },
+        sedeId: true,
+      },
+      orderBy: { nombre: 'asc' },
+    });
+  }
+
   private async _cargarPermisos(rolId: string): Promise<string[]> {
     const rolesPermisos = await this.prisma.rolPermiso.findMany({
       where: { rolId, permiso: { activo: true } },

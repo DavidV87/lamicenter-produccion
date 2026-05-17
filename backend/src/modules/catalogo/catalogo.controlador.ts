@@ -247,6 +247,29 @@ export class CatalogoControlador {
     return respuestaExitosa(sedes, 'Sedes obtenidas exitosamente');
   }
 
+  @Get('etapas-produccion')
+  @Permisos('catalogo.ver')
+  async obtenerEtapasProduccion(): Promise<RespuestaApi<unknown>> {
+    const etapas = await this.catalogoServicio.obtenerEtapasProduccion();
+    return respuestaExitosa(etapas, 'Etapas de producción obtenidas exitosamente');
+  }
+
+  @Get('tipos-validacion-despacho')
+  @Permisos('catalogo.ver')
+  async obtenerTiposValidacionDespacho(): Promise<RespuestaApi<unknown>> {
+    const tipos = await this.catalogoServicio.obtenerTiposValidacionDespacho();
+    return respuestaExitosa(tipos, 'Tipos de validación de despacho obtenidos exitosamente');
+  }
+
+  @Get('tipos-validacion-despacho/:id')
+  @Permisos('catalogo.ver')
+  async obtenerTipoValidacionDespachoPorId(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<RespuestaApi<unknown>> {
+    const tipo = await this.catalogoServicio.obtenerTipoValidacionDespachoPorId(id);
+    return respuestaExitosa(tipo, 'Tipo de validación de despacho obtenido exitosamente');
+  }
+
   // ===========================================================================
   // UBICACIONES
   // ===========================================================================

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthModulo } from './auth/auth.modulo';
+import { SeguridadControlador } from './seguridad.controlador';
 
 /**
  * Módulo Seguridad — agrupa autenticación, autorización, usuarios y roles.
@@ -7,6 +8,7 @@ import { AuthModulo } from './auth/auth.modulo';
  */
 @Module({
   imports: [AuthModulo],
+  controllers: [SeguridadControlador],
   exports: [AuthModulo],
 })
 export class SeguridadModulo {}

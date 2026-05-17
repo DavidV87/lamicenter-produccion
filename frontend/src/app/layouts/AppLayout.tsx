@@ -14,9 +14,9 @@ import {
 const MENU = [
   { a: '/dashboard',      etiqueta: 'Dashboard',     Icono: LayoutDashboard },
   { a: '/pedidos',        etiqueta: 'Pedidos',        Icono: Package         },
-  { a: '/produccion',     etiqueta: 'Producción',     Icono: Factory         },
-  { a: '/abastecimiento', etiqueta: 'Abastecimiento', Icono: ShoppingCart    },
-  { a: '/despacho',       etiqueta: 'Despacho',       Icono: Truck           },
+  { a: '/produccion/ordenes', etiqueta: 'Producción', Icono: Factory         },
+  { a: '/abastecimiento/requerimientos', etiqueta: 'Abastecimiento', Icono: ShoppingCart },
+  { a: '/despacho/despachos', etiqueta: 'Despacho',    Icono: Truck           },
   { a: '/pqrs',           etiqueta: 'PQRS',           Icono: MessageSquare   },
   { a: '/catalogo',       etiqueta: 'Catálogo',       Icono: BookOpen        },
   { a: '/reportes',       etiqueta: 'Reportes',       Icono: BarChart2       },

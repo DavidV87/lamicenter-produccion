@@ -4,7 +4,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, TipoAccionAuditoria, TipoItem, Sede } from '@prisma/client';
+import { Prisma, TipoAccionAuditoria, TipoItem, Sede, EtapaProduccion } from '@prisma/client';
 import { PrismaServicio } from '../../prisma/prisma.servicio';
 import { UsuarioJwt } from '../seguridad/auth/types/usuario-jwt.interfaz';
 
@@ -786,6 +786,31 @@ export class CatalogoServicio {
       orderBy: { nombre: 'asc' },
       select:  { id: true, nombre: true, codigo: true, direccion: true },
     });
+  }
+
+  async obtenerEtapasProduccion(): Promise<Pick<EtapaProduccion, 'id' | 'nombre' | 'codigo' | 'descripcion' | 'orden' | 'activo'>[]> {
+    return this.prisma.etapaProduccion.findMany({
+      where:   { activo: true },
+      orderBy: { orden: 'asc' },
+      select:  { id: true, nombre: true, codigo: true, descripcion: true, orden: true, activo: true },
+    });
+  }
+
+  async obtenerTiposValidacionDespacho() {
+    return this.prisma.tipoValidacionDespacho.findMany({
+      where:   { activo: true },
+      orderBy: { ordenVisual: 'asc' },
+      select:  { id: true, codigo: true, nombre: true, descripcion: true, ordenVisual: true, activo: true },
+    });
+  }
+
+  async obtenerTipoValidacionDespachoPorId(id: string) {
+    const tipo = await this.prisma.tipoValidacionDespacho.findUnique({
+      where:  { id },
+      select: { id: true, codigo: true, nombre: true, descripcion: true, ordenVisual: true, activo: true },
+    });
+    if (!tipo) throw new NotFoundException(`Tipo de validación de despacho ${id} no encontrado`);
+    return tipo;
   }
 
   async actualizarUbicacion(id: string, dto: ActualizarUbicacionDto, usuario: UsuarioJwt): Promise<UbicacionDetalle> {
