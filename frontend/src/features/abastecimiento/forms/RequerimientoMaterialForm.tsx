@@ -10,8 +10,12 @@ import { Skeleton } from '@/shared/components/ui/skeleton';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/shared/components/ui/select';
+import { clienteApi } from '@/shared/api/cliente-api';
+import type { RespuestaApi } from '@/shared/types';
 import { catalogoServicio } from '@/features/catalogo/services/catalogo.servicio';
 import type { CrearRequerimientoPayload } from '../types/abastecimiento.types';
+
+interface OrdenRef { id: string; consecutivo: string; estado: { nombre: string } }
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -56,6 +60,16 @@ export function RequerimientoMaterialForm({ onSubmit, cargando }: Props) {
   const { data: sedes, isLoading: cargandoSedes } = useQuery({
     queryKey: ['sedes'],
     queryFn: () => catalogoServicio.obtenerSedes(),
+    staleTime: 5 * 60_000,
+  });
+
+  const { data: ordenes, isLoading: cargandoOrdenes } = useQuery({
+    queryKey: ['ordenes-ref-requerimiento'],
+    queryFn: async () => {
+      const { data } = await clienteApi.get<RespuestaApi<{ datos: OrdenRef[] }>>('/produccion/ordenes?limite=100');
+      if (!data.exito || !data.datos) throw new Error(data.mensaje);
+      return data.datos.datos;
+    },
     staleTime: 5 * 60_000,
   });
 
@@ -183,12 +197,25 @@ export function RequerimientoMaterialForm({ onSubmit, cargando }: Props) {
           </div>
 
           <div className="space-y-1">
-            <Label>ID de orden de producción vinculada</Label>
-            <Input
-              {...register('ordenProduccionId')}
-              placeholder="UUID de la orden (opcional)"
-              className="font-mono text-xs"
-            />
+            <Label>Orden de producción vinculada</Label>
+            {cargandoOrdenes ? <Skeleton className="h-9 w-full" /> : (
+              <Select
+                value={watch('ordenProduccionId') ?? ''}
+                onValueChange={(v) => setValue('ordenProduccionId', v || undefined)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sin orden…" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Sin orden</SelectItem>
+                  {ordenes?.map((o) => (
+                    <SelectItem key={o.id} value={o.id}>
+                      {o.consecutivo} — {o.estado.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             {errors.ordenProduccionId && (
               <p className="text-xs text-destructive">{errors.ordenProduccionId.message}</p>
             )}

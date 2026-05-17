@@ -12,6 +12,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/shared/components/ui/select';
 import { catalogoServicio } from '@/features/catalogo/services/catalogo.servicio';
+import { abastecimientoServicio } from '../services/abastecimiento.servicio';
 import type { CrearSolicitudCompraPayload } from '../types/abastecimiento.types';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -69,6 +70,12 @@ export function SolicitudCompraForm({ onSubmit, cargando }: Props) {
   const { data: items, isLoading: cargandoItems } = useQuery({
     queryKey: ['items-referencia'],
     queryFn: () => catalogoServicio.listarItems({ limite: 200, activo: true }).then((r) => r.datos),
+    staleTime: 5 * 60_000,
+  });
+
+  const { data: requerimientos, isLoading: cargandoRequerimientos } = useQuery({
+    queryKey: ['requerimientos-ref'],
+    queryFn: () => abastecimientoServicio.listarRequerimientos({ limite: 100 }).then((r) => r.datos),
     staleTime: 5 * 60_000,
   });
 
@@ -225,12 +232,27 @@ export function SolicitudCompraForm({ onSubmit, cargando }: Props) {
             </div>
 
             <div className="space-y-1">
-              <Label>ID de requerimiento vinculado</Label>
-              <Input
-                {...register(`items.${idx}.requerimientoMaterialId`)}
-                placeholder="UUID del requerimiento (opcional)"
-                className="font-mono text-xs"
-              />
+              <Label>Requerimiento vinculado</Label>
+              {cargandoRequerimientos ? <Skeleton className="h-9 w-full" /> : (
+                <Select
+                  value={watch(`items.${idx}.requerimientoMaterialId`) ?? ''}
+                  onValueChange={(v) =>
+                    setValue(`items.${idx}.requerimientoMaterialId`, v || undefined)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sin requerimiento…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Sin requerimiento</SelectItem>
+                    {requerimientos?.map((r) => (
+                      <SelectItem key={r.id} value={r.id}>
+                        {r.item?.nombre ?? '—'} × {r.cantidadRequerida}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               {errors.items?.[idx]?.requerimientoMaterialId && (
                 <p className="text-xs text-destructive">
                   {errors.items[idx]?.requerimientoMaterialId?.message}

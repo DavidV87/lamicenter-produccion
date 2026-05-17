@@ -22,7 +22,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const esquema = z
   .object({
     clienteId:            z.string().regex(UUID_RE, 'Selecciona un cliente'),
-    tipoNovedadId:        z.string().regex(UUID_RE, 'UUID inválido'),
+    tipoNovedadId:        z.string().regex(UUID_RE, 'Selecciona un tipo de novedad'),
     descripcion:          z.string().min(10, 'Mínimo 10 caracteres'),
     pedidoId:             z.string().optional(),
     facturaId:            z.string().optional(),
@@ -40,14 +40,8 @@ const esquema = z
         message: 'UUID de novedad operativa requerido cuando genera reproceso',
       });
     }
-    if (d.pedidoId && !d.pedidoId.match(UUID_RE)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['pedidoId'], message: 'UUID inválido' });
-    }
     if (d.facturaId && !d.facturaId.match(UUID_RE)) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['facturaId'], message: 'UUID inválido' });
-    }
-    if (d.ordenProduccionId && !d.ordenProduccionId.match(UUID_RE)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['ordenProduccionId'], message: 'UUID inválido' });
     }
     if (d.costoEstimado && isNaN(parseFloat(d.costoEstimado))) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['costoEstimado'], message: 'Debe ser un número' });
@@ -60,6 +54,8 @@ const esquema = z
 type Campos = z.infer<typeof esquema>;
 
 interface UsuarioRef { id: string; nombre: string; email: string }
+interface TipoNovedadRef { id: string; nombre: string; aplicaA: string }
+interface PedidoRef { id: string; consecutivo: string; cliente: { razonSocial: string } }
 
 interface Props {
   onExito: (pqrsId: string, advertencias: string[]) => void;
@@ -76,13 +72,35 @@ export function PqrsForm({ onExito }: Props) {
     defaultValues: { generaReproceso: false },
   });
 
-  const clienteSeleccionado          = watch('clienteId');
-  const responsableSeleccionado      = watch('responsableSolucionId');
-  const generaReproceso              = watch('generaReproceso');
+  const clienteSeleccionado      = watch('clienteId');
+  const tipoNovedadSeleccionado  = watch('tipoNovedadId');
+  const pedidoSeleccionado       = watch('pedidoId');
+  const responsableSeleccionado  = watch('responsableSolucionId');
+  const generaReproceso          = watch('generaReproceso');
 
   const { data: clientes, isLoading: cargandoClientes } = useQuery({
     queryKey: ['clientes-ref-pqrs'],
     queryFn: () => catalogoServicio.listarClientes({ limite: 200, activo: true }),
+    staleTime: 5 * 60_000,
+  });
+
+  const { data: tiposNovedad, isLoading: cargandoTipos } = useQuery({
+    queryKey: ['tipos-novedad-ref'],
+    queryFn: async () => {
+      const { data } = await clienteApi.get<RespuestaApi<TipoNovedadRef[]>>('/catalogo/tipos-novedad');
+      if (!data.exito || !data.datos) throw new Error(data.mensaje);
+      return data.datos;
+    },
+    staleTime: 5 * 60_000,
+  });
+
+  const { data: pedidos, isLoading: cargandoPedidos } = useQuery({
+    queryKey: ['pedidos-ref-pqrs'],
+    queryFn: async () => {
+      const { data } = await clienteApi.get<RespuestaApi<{ datos: PedidoRef[] }>>('/pedidos?limite=100');
+      if (!data.exito || !data.datos) throw new Error(data.mensaje);
+      return data.datos.datos;
+    },
     staleTime: 5 * 60_000,
   });
 
@@ -140,17 +158,28 @@ export function PqrsForm({ onExito }: Props) {
         {errors.clienteId && <p className="text-xs text-destructive">{errors.clienteId.message}</p>}
       </div>
 
-      {/* Tipo novedad — UUID manual (no existe endpoint de referencia) */}
+      {/* Tipo de novedad */}
       <div className="space-y-1">
-        <Label>ID de tipo de novedad *</Label>
-        <Input
-          {...register('tipoNovedadId')}
-          placeholder="UUID del tipo de novedad…"
-          className="font-mono text-sm"
-        />
-        <p className="text-xs text-muted-foreground">
-          Consultar el UUID en la tabla tipo_novedad de la base de datos.
-        </p>
+        <Label>Tipo de novedad *</Label>
+        {cargandoTipos ? (
+          <Skeleton className="h-10 w-full" />
+        ) : (
+          <Select
+            value={tipoNovedadSeleccionado ?? ''}
+            onValueChange={(v) => setValue('tipoNovedadId', v, { shouldValidate: true })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona un tipo de novedad…" />
+            </SelectTrigger>
+            <SelectContent>
+              {tiposNovedad?.map((t) => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.nombre} ({t.aplicaA})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         {errors.tipoNovedadId && (
           <p className="text-xs text-destructive">{errors.tipoNovedadId.message}</p>
         )}
@@ -171,16 +200,39 @@ export function PqrsForm({ onExito }: Props) {
 
       {/* Referencias opcionales — grid 2 columnas */}
       <div className="grid gap-3 sm:grid-cols-2">
+        {/* Pedido — Select */}
         <div className="space-y-1">
-          <Label>ID de pedido</Label>
-          <Input {...register('pedidoId')} placeholder="UUID opcional…" className="font-mono text-sm" />
-          {errors.pedidoId && <p className="text-xs text-destructive">{errors.pedidoId.message}</p>}
+          <Label>Pedido vinculado</Label>
+          {cargandoPedidos ? (
+            <Skeleton className="h-10 w-full" />
+          ) : (
+            <Select
+              value={pedidoSeleccionado ?? ''}
+              onValueChange={(v) => setValue('pedidoId', v || undefined)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sin pedido…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Sin pedido</SelectItem>
+                {pedidos?.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.consecutivo} — {p.cliente.razonSocial}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
+
+        {/* Factura — UUID manual (no existe módulo UI) */}
         <div className="space-y-1">
           <Label>ID de factura</Label>
           <Input {...register('facturaId')} placeholder="UUID opcional…" className="font-mono text-sm" />
           {errors.facturaId && <p className="text-xs text-destructive">{errors.facturaId.message}</p>}
         </div>
+
+        {/* Orden de producción — UUID manual (referencia cruzada opcional) */}
         <div className="space-y-1">
           <Label>ID de orden de producción</Label>
           <Input {...register('ordenProduccionId')} placeholder="UUID opcional…" className="font-mono text-sm" />
@@ -188,6 +240,7 @@ export function PqrsForm({ onExito }: Props) {
             <p className="text-xs text-destructive">{errors.ordenProduccionId.message}</p>
           )}
         </div>
+
         <div className="space-y-1">
           <Label>Costo estimado (COP)</Label>
           <Input {...register('costoEstimado')} type="number" min="0" step="0.01" placeholder="0.00" />
