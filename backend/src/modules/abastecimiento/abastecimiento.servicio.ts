@@ -399,6 +399,12 @@ export class AbastecimientoServicio {
     if (query.sedeId)      donde.sedeId           = query.sedeId;
     if (query.proveedorId) donde.proveedorId       = query.proveedorId;
     if (query.estadoId)    donde.estadoSolicitudId = query.estadoId;
+    if (query.busqueda) {
+      donde.OR = [
+        { observaciones: { contains: query.busqueda, mode: 'insensitive' } },
+        { proveedor: { razonSocial: { contains: query.busqueda, mode: 'insensitive' } } },
+      ];
+    }
 
     const [registros, total] = await this.prisma.$transaction([
       this.prisma.solicitudCompra.findMany({

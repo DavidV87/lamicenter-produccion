@@ -34,12 +34,10 @@ function Paginador({
 
 export function SolicitudesCompraPage() {
   const [pagina, setPagina]     = useState(1);
-  // busqueda reservado para cuando el backend del endpoint /solicitudes-compra soporte el parámetro
   const [busqueda, setBusqueda] = useState('');
   const tienePermiso = useAuthStore((s) => s.tienePermiso);
 
-  void busqueda; // usado por BuscadorEntidad; se conectará al hook cuando el DTO soporte busqueda
-  const { data, isLoading, isError } = useSolicitudesCompra({ pagina, limite: LIMITE });
+  const { data, isLoading, isError } = useSolicitudesCompra({ pagina, limite: LIMITE, busqueda: busqueda || undefined });
 
   return (
     <div className="space-y-4">

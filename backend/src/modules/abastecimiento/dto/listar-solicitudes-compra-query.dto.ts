@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
 
 /** Query params para listar solicitudes de compra con filtros y paginación. */
 export class ListarSolicitudesCompraQueryDto {
@@ -28,4 +28,9 @@ export class ListarSolicitudesCompraQueryDto {
   @IsOptional()
   @IsUUID()
   estadoId?: string;
+
+  /** Búsqueda libre por observaciones o razón social del proveedor. */
+  @IsOptional()
+  @IsString()
+  busqueda?: string;
 }

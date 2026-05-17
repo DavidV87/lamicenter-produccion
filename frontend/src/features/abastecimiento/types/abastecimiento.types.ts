@@ -128,6 +128,7 @@ export interface FiltrosRequerimientos {
 }
 
 export interface FiltrosSolicitudes {
+  busqueda?: string;
   pagina?: number;
   limite?: number;
 }
