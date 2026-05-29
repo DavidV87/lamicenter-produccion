@@ -10,7 +10,8 @@ interface Props {
 const DESTINO_LABEL: Record<DestinoOperativo, string> = {
   PRODUCCION:        'Producción',
   DESPACHO_DIRECTO:  'Despacho directo',
-  MIXTO:             'Mixto',
+  MATERIAL_CLIENTE:  'Material del cliente',
+  SERVICIO:          'Servicio',
 };
 
 export function PedidoItemsTable({ items }: Props) {

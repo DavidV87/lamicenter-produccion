@@ -21,7 +21,7 @@ const esquemaItem = z.object({
   cantidadTotal:              z.number({ invalid_type_error: 'Requerido' }).positive('Debe ser mayor a 0'),
   cantidadParaProduccion:     z.number({ invalid_type_error: 'Requerido' }).min(0, 'Mínimo 0'),
   cantidadParaDespachoEntero: z.number({ invalid_type_error: 'Requerido' }).min(0, 'Mínimo 0'),
-  destinoOperativo:           z.enum(['PRODUCCION', 'DESPACHO_DIRECTO', 'MIXTO'], {
+  destinoOperativo:           z.enum(['PRODUCCION', 'DESPACHO_DIRECTO', 'MATERIAL_CLIENTE', 'SERVICIO'], {
     errorMap: () => ({ message: 'Selecciona un destino' }),
   }),
   esMaterialCliente: z.boolean().optional(),
@@ -91,7 +91,11 @@ export function PedidoManualForm({ onSubmit, cargando }: Props) {
       sedeVentaId:           campos.sedeVentaId,
       sedeResponsableId:     campos.sedeResponsableId,
       sedeDespachoId:        campos.sedeDespachoId === '__SIN_SEDE__' ? undefined : (campos.sedeDespachoId || undefined),
-      fechaEntregaPrometida: campos.fechaEntregaPrometida || undefined,
+      fechaEntregaPrometida: campos.fechaEntregaPrometida
+        ? (campos.fechaEntregaPrometida.length === 16
+            ? `${campos.fechaEntregaPrometida}:00`
+            : campos.fechaEntregaPrometida)
+        : undefined,
       observaciones:         campos.observaciones || undefined,
       items: campos.items.map((it) => ({
         itemId:                     it.itemId || undefined,
@@ -226,8 +230,8 @@ export function PedidoManualForm({ onSubmit, cargando }: Props) {
           </div>
 
           <div className="space-y-1">
-            <Label>Fecha de entrega prometida</Label>
-            <Input type="date" {...register('fechaEntregaPrometida')} />
+            <Label>Fecha y hora de entrega prometida</Label>
+            <Input type="datetime-local" {...register('fechaEntregaPrometida')} />
           </div>
 
           <div className="space-y-1">

@@ -10,7 +10,7 @@ export interface RespuestaPaginada<T> {
 
 // ── Enums ─────────────────────────────────────────────────────────────────────
 
-export type DestinoOperativo = 'PRODUCCION' | 'DESPACHO_DIRECTO' | 'MIXTO';
+export type DestinoOperativo = 'PRODUCCION' | 'DESPACHO_DIRECTO' | 'MATERIAL_CLIENTE' | 'SERVICIO';
 
 export type EstadoValidacion = 'APROBADA' | 'RECHAZADA' | 'REQUIERE_AJUSTE';
 

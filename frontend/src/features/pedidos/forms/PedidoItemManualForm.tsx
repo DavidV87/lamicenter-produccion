@@ -22,7 +22,8 @@ interface Props {
 const DESTINO_OPCIONES = [
   { valor: 'PRODUCCION',       etiqueta: 'Producción' },
   { valor: 'DESPACHO_DIRECTO', etiqueta: 'Despacho directo' },
-  { valor: 'MIXTO',            etiqueta: 'Mixto' },
+  { valor: 'MATERIAL_CLIENTE', etiqueta: 'Material del cliente' },
+  { valor: 'SERVICIO',         etiqueta: 'Servicio' },
 ];
 
 export function PedidoItemManualForm({ index, onEliminar }: Props) {
@@ -152,7 +153,7 @@ export function PedidoItemManualForm({ index, onEliminar }: Props) {
           <Select
             value={destinoVal ?? ''}
             onValueChange={(v) =>
-              setValue(`items.${index}.destinoOperativo`, v as 'PRODUCCION' | 'DESPACHO_DIRECTO' | 'MIXTO',
+              setValue(`items.${index}.destinoOperativo`, v as 'PRODUCCION' | 'DESPACHO_DIRECTO' | 'MATERIAL_CLIENTE' | 'SERVICIO',
                 { shouldValidate: true })}
           >
             <SelectTrigger>
