@@ -172,13 +172,13 @@ export function OrdenProduccionForm({ onSubmit, cargando }: Props) {
             {cargandoSedes ? <Skeleton className="h-9 w-full" /> : (
               <Select
                 value={sedeDespachoId ?? ''}
-                onValueChange={(v) => setValue('sedeDespachoId', v || undefined)}
+                onValueChange={(v) => setValue('sedeDespachoId', v === '__SIN_SEDE__' ? undefined : v)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Sin sede…" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin sede</SelectItem>
+                  <SelectItem value="__SIN_SEDE__">Sin sede</SelectItem>
                   {sedes?.map((s) => (
                     <SelectItem key={s.id} value={s.id}>{s.nombre}</SelectItem>
                   ))}
@@ -199,13 +199,13 @@ export function OrdenProduccionForm({ onSubmit, cargando }: Props) {
             {cargandoMaquinas ? <Skeleton className="h-9 w-full" /> : (
               <Select
                 value={maquinaId ?? ''}
-                onValueChange={(v) => setValue('maquinaPrincipalId', v || undefined)}
+                onValueChange={(v) => setValue('maquinaPrincipalId', v === '__SIN_MAQUINA__' ? undefined : v)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Sin máquina…" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin máquina</SelectItem>
+                  <SelectItem value="__SIN_MAQUINA__">Sin máquina</SelectItem>
                   {maquinas?.map((m) => (
                     <SelectItem key={m.id} value={m.id}>
                       {m.nombre}

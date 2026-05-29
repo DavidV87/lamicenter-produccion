@@ -133,13 +133,13 @@ export function AsignarEtapaDialog({ ordenId, etapaId, abierto, onCerrar }: Prop
             ) : (
               <Select
                 value={maquinaId ?? ''}
-                onValueChange={(v) => setValue('maquinaId', v || undefined)}
+                onValueChange={(v) => setValue('maquinaId', v === '__SIN_MAQUINA__' ? undefined : v)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Sin máquina…" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin máquina</SelectItem>
+                  <SelectItem value="__SIN_MAQUINA__">Sin máquina</SelectItem>
                   {maquinas?.map((m) => (
                     <SelectItem key={m.id} value={m.id}>
                       {m.nombre}

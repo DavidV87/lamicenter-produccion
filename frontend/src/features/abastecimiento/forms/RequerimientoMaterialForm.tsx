@@ -201,13 +201,13 @@ export function RequerimientoMaterialForm({ onSubmit, cargando }: Props) {
             {cargandoOrdenes ? <Skeleton className="h-9 w-full" /> : (
               <Select
                 value={watch('ordenProduccionId') ?? ''}
-                onValueChange={(v) => setValue('ordenProduccionId', v || undefined)}
+                onValueChange={(v) => setValue('ordenProduccionId', v === '__SIN_ORDEN__' ? undefined : v)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Sin orden…" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin orden</SelectItem>
+                  <SelectItem value="__SIN_ORDEN__">Sin orden</SelectItem>
                   {ordenes?.map((o) => (
                     <SelectItem key={o.id} value={o.id}>
                       {o.consecutivo} — {o.estado.nombre}

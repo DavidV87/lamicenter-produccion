@@ -126,13 +126,13 @@ export function SolicitudCompraForm({ onSubmit, cargando }: Props) {
             {cargandoProveedores ? <Skeleton className="h-9 w-full" /> : (
               <Select
                 value={proveedorId ?? ''}
-                onValueChange={(v) => setValue('proveedorId', v || undefined)}
+                onValueChange={(v) => setValue('proveedorId', v === '__SIN_PROVEEDOR__' ? undefined : v)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Sin proveedor…" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin proveedor</SelectItem>
+                  <SelectItem value="__SIN_PROVEEDOR__">Sin proveedor</SelectItem>
                   {proveedores?.map((p) => (
                     <SelectItem key={p.id} value={p.id}>{p.razonSocial}</SelectItem>
                   ))}
@@ -237,14 +237,14 @@ export function SolicitudCompraForm({ onSubmit, cargando }: Props) {
                 <Select
                   value={watch(`items.${idx}.requerimientoMaterialId`) ?? ''}
                   onValueChange={(v) =>
-                    setValue(`items.${idx}.requerimientoMaterialId`, v || undefined)
+                    setValue(`items.${idx}.requerimientoMaterialId`, v === '__SIN_REQUERIMIENTO__' ? undefined : v)
                   }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sin requerimiento…" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Sin requerimiento</SelectItem>
+                    <SelectItem value="__SIN_REQUERIMIENTO__">Sin requerimiento</SelectItem>
                     {requerimientos?.map((r) => (
                       <SelectItem key={r.id} value={r.id}>
                         {r.item?.nombre ?? '—'} × {r.cantidadRequerida}

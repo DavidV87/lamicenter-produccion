@@ -71,13 +71,13 @@ export function PedidoItemManualForm({ index, onEliminar }: Props) {
         ) : (
           <Select
             value={itemId ?? ''}
-            onValueChange={(v) => setValue(`items.${index}.itemId`, v || undefined)}
+            onValueChange={(v) => setValue(`items.${index}.itemId`, v === '__SIN_ITEM__' ? undefined : v)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Sin ítem de catálogo…" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Sin ítem</SelectItem>
+              <SelectItem value="__SIN_ITEM__">Sin ítem</SelectItem>
               {items?.map((it) => (
                 <SelectItem key={it.id} value={it.id}>
                   {it.nombre}

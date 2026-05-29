@@ -208,13 +208,13 @@ export function PqrsForm({ onExito }: Props) {
           ) : (
             <Select
               value={pedidoSeleccionado ?? ''}
-              onValueChange={(v) => setValue('pedidoId', v || undefined)}
+              onValueChange={(v) => setValue('pedidoId', v === '__SIN_PEDIDO__' ? undefined : v)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Sin pedido…" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Sin pedido</SelectItem>
+                <SelectItem value="__SIN_PEDIDO__">Sin pedido</SelectItem>
                 {pedidos?.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
                     {p.consecutivo} — {p.cliente.razonSocial}

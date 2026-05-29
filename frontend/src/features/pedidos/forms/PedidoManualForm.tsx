@@ -162,13 +162,13 @@ export function PedidoManualForm({ onSubmit, cargando }: Props) {
               {cargandoSedes ? <Skeleton className="h-9 w-full" /> : (
                 <Select
                   value={sedeVentaId ?? ''}
-                  onValueChange={(v) => setValue('sedeVentaId', v || undefined)}
+                  onValueChange={(v) => setValue('sedeVentaId', v === '__SIN_SEDE__' ? undefined : v)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sin sede…" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Sin sede</SelectItem>
+                    <SelectItem value="__SIN_SEDE__">Sin sede</SelectItem>
                     {sedes?.map((s) => (
                       <SelectItem key={s.id} value={s.id}>{s.nombre}</SelectItem>
                     ))}
@@ -183,13 +183,13 @@ export function PedidoManualForm({ onSubmit, cargando }: Props) {
               {cargandoSedes ? <Skeleton className="h-9 w-full" /> : (
                 <Select
                   value={sedeResponsableId ?? ''}
-                  onValueChange={(v) => setValue('sedeResponsableId', v || undefined)}
+                  onValueChange={(v) => setValue('sedeResponsableId', v === '__SIN_SEDE__' ? undefined : v)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sin sede…" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Sin sede</SelectItem>
+                    <SelectItem value="__SIN_SEDE__">Sin sede</SelectItem>
                     {sedes?.map((s) => (
                       <SelectItem key={s.id} value={s.id}>{s.nombre}</SelectItem>
                     ))}
@@ -204,13 +204,13 @@ export function PedidoManualForm({ onSubmit, cargando }: Props) {
               {cargandoSedes ? <Skeleton className="h-9 w-full" /> : (
                 <Select
                   value={sedeDespachoId ?? ''}
-                  onValueChange={(v) => setValue('sedeDespachoId', v || undefined)}
+                  onValueChange={(v) => setValue('sedeDespachoId', v === '__SIN_SEDE__' ? undefined : v)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sin sede…" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Sin sede</SelectItem>
+                    <SelectItem value="__SIN_SEDE__">Sin sede</SelectItem>
                     {sedes?.map((s) => (
                       <SelectItem key={s.id} value={s.id}>{s.nombre}</SelectItem>
                     ))}
