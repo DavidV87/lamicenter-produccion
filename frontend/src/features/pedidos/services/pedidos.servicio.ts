@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { clienteApi } from '@/shared/api/cliente-api';
 import type { RespuestaApi } from '@/shared/types';
 import type {
@@ -36,9 +37,20 @@ export const pedidosServicio = {
   },
 
   async crear(payload: CrearPedidoPayload): Promise<Pedido> {
-    const { data } = await clienteApi.post<RespuestaApi<Pedido>>('/pedidos', payload);
-    if (!data.exito || !data.datos) throw new Error(data.mensaje);
-    return data.datos;
+    try {
+      const { data } = await clienteApi.post<RespuestaApi<Pedido>>('/pedidos', payload);
+      if (!data.exito || !data.datos) throw new Error(data.mensaje);
+      return data.datos;
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response) {
+        const body = err.response.data as RespuestaApi<unknown> & { message?: string | string[] };
+        if (body.errores?.length) throw new Error(body.errores.join(' | '));
+        if (body.mensaje) throw new Error(body.mensaje);
+        if (Array.isArray(body.message)) throw new Error(body.message.join(' | '));
+        if (typeof body.message === 'string') throw new Error(body.message);
+      }
+      throw err;
+    }
   },
 
   async cambiarEstado(id: string, payload: CambiarEstadoPedidoPayload): Promise<Pedido> {

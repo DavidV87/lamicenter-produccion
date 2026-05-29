@@ -95,7 +95,8 @@ export interface HistorialEstadoPedido {
 
 export interface CrearItemPedidoPayload {
   itemId?: string;
-  descripcionOperativa: string;
+  descripcion: string;
+  cantidad: number;
   cantidadTotal: number;
   cantidadParaProduccion: number;
   cantidadParaDespachoEntero: number;
@@ -106,8 +107,8 @@ export interface CrearItemPedidoPayload {
 
 export interface CrearPedidoPayload {
   clienteId: string;
-  sedeVentaId?: string;
-  sedeResponsableId?: string;
+  sedeVentaId: string;
+  sedeResponsableId: string;
   sedeDespachoId?: string;
   fechaEntregaPrometida?: string;
   observaciones?: string;

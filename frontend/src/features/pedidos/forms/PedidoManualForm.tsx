@@ -36,8 +36,8 @@ const esquemaItem = z.object({
 
 const esquema = z.object({
   clienteId:          z.string().min(1, 'Selecciona un cliente'),
-  sedeVentaId:        z.string().optional(),
-  sedeResponsableId:  z.string().optional(),
+  sedeVentaId:        z.string().min(1, 'Selecciona la sede de venta'),
+  sedeResponsableId:  z.string().min(1, 'Selecciona la sede responsable'),
   sedeDespachoId:     z.string().optional(),
   fechaEntregaPrometida: z.string().optional(),
   observaciones:      z.string().optional(),
@@ -55,7 +55,7 @@ export function PedidoManualForm({ onSubmit, cargando }: Props) {
   const metodos = useForm<PedidoManualFormCampos>({
     resolver: zodResolver(esquema),
     defaultValues: {
-      clienteId: '', sedeVentaId: '', sedeResponsableId: '', sedeDespachoId: '',
+      clienteId: '', sedeVentaId: '', sedeResponsableId: '', sedeDespachoId: undefined,
       fechaEntregaPrometida: '', observaciones: '',
       items: [{
         itemId: undefined, descripcionOperativa: '',
@@ -88,14 +88,15 @@ export function PedidoManualForm({ onSubmit, cargando }: Props) {
   function enviar(campos: PedidoManualFormCampos) {
     const payload: CrearPedidoPayload = {
       clienteId:             campos.clienteId,
-      sedeVentaId:           campos.sedeVentaId || undefined,
-      sedeResponsableId:     campos.sedeResponsableId || undefined,
-      sedeDespachoId:        campos.sedeDespachoId || undefined,
+      sedeVentaId:           campos.sedeVentaId,
+      sedeResponsableId:     campos.sedeResponsableId,
+      sedeDespachoId:        campos.sedeDespachoId === '__SIN_SEDE__' ? undefined : (campos.sedeDespachoId || undefined),
       fechaEntregaPrometida: campos.fechaEntregaPrometida || undefined,
       observaciones:         campos.observaciones || undefined,
       items: campos.items.map((it) => ({
         itemId:                     it.itemId || undefined,
-        descripcionOperativa:       it.descripcionOperativa,
+        descripcion:                it.descripcionOperativa,
+        cantidad:                   it.cantidadTotal,
         cantidadTotal:              it.cantidadTotal,
         cantidadParaProduccion:     it.cantidadParaProduccion,
         cantidadParaDespachoEntero: it.cantidadParaDespachoEntero,
@@ -158,43 +159,47 @@ export function PedidoManualForm({ onSubmit, cargando }: Props) {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {/* Sede venta */}
             <div className="space-y-1">
-              <Label>Sede de venta</Label>
+              <Label>Sede de venta *</Label>
               {cargandoSedes ? <Skeleton className="h-9 w-full" /> : (
                 <Select
                   value={sedeVentaId ?? ''}
-                  onValueChange={(v) => setValue('sedeVentaId', v === '__SIN_SEDE__' ? undefined : v)}
+                  onValueChange={(v) => setValue('sedeVentaId', v, { shouldValidate: true })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Sin sede…" />
+                    <SelectValue placeholder="Selecciona sede…" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__SIN_SEDE__">Sin sede</SelectItem>
                     {sedes?.map((s) => (
                       <SelectItem key={s.id} value={s.id}>{s.nombre}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               )}
+              {errors.sedeVentaId && (
+                <p className="text-xs text-destructive">{errors.sedeVentaId.message}</p>
+              )}
             </div>
 
             {/* Sede responsable */}
             <div className="space-y-1">
-              <Label>Sede responsable</Label>
+              <Label>Sede responsable *</Label>
               {cargandoSedes ? <Skeleton className="h-9 w-full" /> : (
                 <Select
                   value={sedeResponsableId ?? ''}
-                  onValueChange={(v) => setValue('sedeResponsableId', v === '__SIN_SEDE__' ? undefined : v)}
+                  onValueChange={(v) => setValue('sedeResponsableId', v, { shouldValidate: true })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Sin sede…" />
+                    <SelectValue placeholder="Selecciona sede…" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__SIN_SEDE__">Sin sede</SelectItem>
                     {sedes?.map((s) => (
                       <SelectItem key={s.id} value={s.id}>{s.nombre}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+              )}
+              {errors.sedeResponsableId && (
+                <p className="text-xs text-destructive">{errors.sedeResponsableId.message}</p>
               )}
             </div>
 
