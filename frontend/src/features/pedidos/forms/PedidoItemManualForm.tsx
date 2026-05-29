@@ -108,7 +108,8 @@ export function PedidoItemManualForm({ index, onEliminar }: Props) {
           <Label className="text-xs">Cant. total *</Label>
           <Input
             type="number"
-            min={1}
+            min={0.01}
+            step="0.01"
             {...register(`items.${index}.cantidadTotal`, { valueAsNumber: true })}
             placeholder="0"
           />
@@ -121,6 +122,7 @@ export function PedidoItemManualForm({ index, onEliminar }: Props) {
           <Input
             type="number"
             min={0}
+            step="0.01"
             {...register(`items.${index}.cantidadParaProduccion`, { valueAsNumber: true })}
             placeholder="0"
           />
@@ -133,6 +135,7 @@ export function PedidoItemManualForm({ index, onEliminar }: Props) {
           <Input
             type="number"
             min={0}
+            step="0.01"
             {...register(`items.${index}.cantidadParaDespachoEntero`, { valueAsNumber: true })}
             placeholder="0"
           />
