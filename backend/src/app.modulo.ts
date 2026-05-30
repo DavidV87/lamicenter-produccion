@@ -22,6 +22,7 @@ import { DespachoModulo } from './modules/despacho/despacho.modulo';
 import { NotificacionesModulo } from './modules/notificaciones/notificaciones.modulo';
 import { PqrsModulo } from './modules/pqrs/pqrs.modulo';
 import { ReportesModulo } from './modules/reportes/reportes.modulo';
+import { ImportacionModulo } from './modules/importacion/importacion.modulo';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { ReportesModulo } from './modules/reportes/reportes.modulo';
     NotificacionesModulo,
     PqrsModulo,
     ReportesModulo,
+    ImportacionModulo,
   ],
   controllers: [AplicacionControlador],
   providers: [

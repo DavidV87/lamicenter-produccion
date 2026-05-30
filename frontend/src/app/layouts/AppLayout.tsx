@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Package, Factory, Truck, ShoppingCart,
-  MessageSquare, BookOpen, BarChart2, LogOut, Menu, X,
+  MessageSquare, BookOpen, BarChart2, LogOut, Menu, X, FileUp,
 } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar';
@@ -19,6 +19,7 @@ const MENU = [
   { a: '/despacho/despachos', etiqueta: 'Despacho',    Icono: Truck           },
   { a: '/pqrs/listado',   etiqueta: 'PQRS',           Icono: MessageSquare   },
   { a: '/catalogo',       etiqueta: 'Catálogo',       Icono: BookOpen        },
+  { a: '/importacion/clientes', etiqueta: 'Importar clientes', Icono: FileUp },
   { a: '/reportes',       etiqueta: 'Reportes',       Icono: BarChart2       },
 ];
 

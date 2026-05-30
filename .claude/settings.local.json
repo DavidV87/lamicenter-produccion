@@ -36,7 +36,12 @@
       "PowerShell(Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c cd C:\\\\Proyectos\\\\lamicenter-produccion\\\\backend && npm run start:dev > backend-tmp.log 2>&1\" -WindowStyle Hidden; Write-Host \"Backend iniciando...\")",
       "Bash(python -m json.tool)",
       "Bash(python3 -)",
-      "Bash(bash --norc -n /c/Proyectos/lamicenter-produccion/scripts/despliegue/desplegar-manual.sh)"
+      "Bash(bash --norc -n /c/Proyectos/lamicenter-produccion/scripts/despliegue/desplegar-manual.sh)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Proyectos\\\\lamicenter-produccion\\\\backend\\\\src\\\\modules\" -Directory)",
+      "Bash(Select-Object -ExpandProperty Name)",
+      "Bash(xargs grep -l \"usuario\\\\|rol\\\\|permiso\")",
+      "PowerShell(Get-ChildItem \"C:\\\\Proyectos\\\\lamicenter-produccion\\\\frontend\\\\src\" -Recurse -Directory | Where-Object { $_.Name -eq \"catalogo\" -or $_.Name -eq \"importacion\" } | Select-Object FullName)",
+      "PowerShell(Head *)"
     ]
   }
 }

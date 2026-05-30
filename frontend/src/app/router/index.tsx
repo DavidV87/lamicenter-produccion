@@ -31,6 +31,7 @@ import { DespachosPage }            from '@/features/despacho/pages/DespachosPag
 import { NuevoDespachoPage }        from '@/features/despacho/pages/NuevoDespachoPage';
 import { DespachoDetallePage }      from '@/features/despacho/pages/DespachoDetallePage';
 import { UbicacionPedidoPage }      from '@/features/despacho/pages/UbicacionPedidoPage';
+import { ImportacionClientesPage } from '@/features/importacion/pages/ImportacionClientesPage';
 import { PqrsPage }         from '@/features/pqrs/pages/PqrsPage';
 import { PqrsListadoPage }  from '@/features/pqrs/pages/PqrsListadoPage';
 import { NuevaPqrsPage }    from '@/features/pqrs/pages/NuevaPqrsPage';
@@ -66,6 +67,11 @@ export function Enrutador() {
             <Route path="/catalogo/proveedores"    element={<ProveedoresPage />} />
             <Route path="/catalogo/maquinas"       element={<MaquinasPage />} />
             <Route path="/catalogo/ubicaciones"    element={<UbicacionesPage />} />
+          </Route>
+
+          {/* Importación */}
+          <Route element={<RutaConPermiso permiso="catalogo.crear" />}>
+            <Route path="/importacion/clientes" element={<ImportacionClientesPage />} />
           </Route>
 
           {/* Pedidos */}
